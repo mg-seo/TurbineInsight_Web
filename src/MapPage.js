@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { LoadScriptNext } from '@react-google-maps/api';
 import Sidebar from './SideBar';
 
+
 const MapComponent = () => {
   const mapRef = useRef(null);
 
@@ -35,6 +36,7 @@ const MapComponent = () => {
     </LoadScriptNext>
     </div>
   );
+
 };
 // 전체 레이아웃 스타일
 const mapPageContainerStyle = {

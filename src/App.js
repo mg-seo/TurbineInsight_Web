@@ -9,12 +9,11 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                {/* 사업 목록 페이지 */}
+                {/* BusinessList 컴포넌트에 setSelectedBusiness 전달 */}
                 <Route
                     path="/"
                     element={<BusinessList setSelectedBusiness={setSelectedBusiness} />}
                 />
-                {/* 지도 페이지 */}
                 <Route
                     path="/map"
                     element={

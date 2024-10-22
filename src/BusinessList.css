@@ -1,0 +1,41 @@
+.business-list {
+  padding: 20px;
+}
+
+.header {
+  background-color: #003399;
+  color: white;
+  padding: 10px;
+  font-size: 24px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 8px;
+  margin-right: 8px;
+}
+
+.search-button, .add-button, .delete-button {
+  padding: 8px 16px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.business-cards {
+  margin-top: 20px;
+}
+
+.business-card {
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
