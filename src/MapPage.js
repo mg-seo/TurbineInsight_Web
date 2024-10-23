@@ -47,50 +47,53 @@ const MapComponent = () => {
 
   return (
     <div style={mainContainerStyle}>
-      {/* 사이드바와 상세 바가 함께 있는 컨테이너 */}
-      <div style={sidebarWithDetailContainerStyle}>
-        <Sidebar setSelectedSection={handleSectionClick} /> {/* 사이드바 추가 */}
-
-        {/* 오른쪽에 추가적인 상세 바 표시 */}
-        <div
-          style={{
-            ...detailSectionStyle,
-            transform: selectedSection !== null ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.5s ease', // 트랜지션 효과 추가 (왼쪽에서 오른쪽으로 이동)
-          }}
-        >
-          {selectedSection !== null && sectionData && (
-            <>
-              <h3>{sectionData.title}</h3>
-              <p>{sectionData.body}</p>
-            </>
-          )}
-        </div>
+      {/* 사이드바와 상세 바를 함께 배치 */}
+      <div style={sidebarWrapperStyle}>
+        <Sidebar setSelectedSection={handleSectionClick} />
+      </div>
+      <div
+        style={{
+          ...detailSectionStyle,
+          transform: selectedSection !== null ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.5s ease', // 트랜지션 효과 추가 (왼쪽에서 오른쪽으로 이동)
+        }}
+      >
+        {selectedSection !== null && sectionData && (
+          <>
+            <div style={detailHeaderStyle}>
+              <button style={closeButtonStyle} onClick={() => setSelectedSection(null)}>X</button>
+            </div>
+            <h3>{sectionData.title}</h3>
+            <p>{sectionData.body}</p>
+          </>
+        )}
       </div>
 
       {/* 지도 */}
-      <LoadScriptNext
-        googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
-        onLoad={() => {
-          // 지도를 로드할 때 한 번만 실행, 이미 로드된 경우 무시
-          if (mapRef.current && !mapInstance.current) {
-            mapInstance.current = new window.google.maps.Map(mapRef.current, {
-              zoom: 12,
-              center: { lat: 37.5665, lng: 126.9780 }, // 서울 기본 위치
-              minZoom: 5,
-              maxZoom: 15, // 확대/축소 제한 설정
-              mapTypeControl: false,
-              streetViewControl: false,
-              fullscreenControl: false,
-              clickableIcons: false,
-              disableDefaultUI: false,
-            });
-          }
-        }}
-        loadingElement={<div>지도를 로딩 중입니다...</div>}
-      >
-        <div ref={mapRef} style={mapContainerStyle} />
-      </LoadScriptNext>
+      <div style={mapWrapperStyle}>
+        <LoadScriptNext
+          googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
+          onLoad={() => {
+            // 지도를 로드할 때 한 번만 실행, 이미 로드된 경우 무시
+            if (mapRef.current && !mapInstance.current) {
+              mapInstance.current = new window.google.maps.Map(mapRef.current, {
+                zoom: 12,
+                center: { lat: 37.5665, lng: 126.9780 }, // 서울 기본 위치
+                minZoom: 5,
+                maxZoom: 15, // 확대/축소 제한 설정
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                clickableIcons: false,
+                disableDefaultUI: false,
+              });
+            }
+          }}
+          loadingElement={<div>지도를 로딩 중입니다...</div>}
+        >
+          <div ref={mapRef} style={mapContainerStyle} />
+        </LoadScriptNext>
+      </div>
     </div>
   );
 };
@@ -101,27 +104,50 @@ const mainContainerStyle = {
   height: '100vh',
 };
 
-// 사이드바와 상세 바 컨테이너 스타일 (가로로 나란히 배치)
-const sidebarWithDetailContainerStyle = {
-  display: 'flex',
-  flexDirection: 'row',
-  height: '100vh',
+// 사이드바 래퍼 스타일
+const sidebarWrapperStyle = {
+  zIndex: 3,
+  width: '250px', // 사이드바의 너비
 };
 
 // 상세 바 스타일
 const detailSectionStyle = {
-  width: '150px', // 상세 바의 너비
+  width: '250px', // 상세 바의 너비
   background: '#f9f9f9',
-  padding: '20px',
+  padding: '10px',
   boxShadow: '-2px 0 5px rgba(0,0,0,0.1)',
   overflowY: 'auto',
-  position: 'relative', // 위치 속성 추가
+  position: 'absolute',
+  top: 0,
+  left: '250px',
+  height: '100%',
+  zIndex: 2,
+};
+
+// 상세 바 헤더 스타일
+const detailHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+};
+
+// 닫기 버튼 스타일
+const closeButtonStyle = {
+  background: 'none',
+  border: 'none',
+  fontSize: '16px',
+  cursor: 'pointer',
 };
 
 // 지도 컨테이너 스타일
-const mapContainerStyle = {
+const mapWrapperStyle = {
   flex: 1,
-  height: '100vh',
+  position: 'relative',
+  zIndex: 1,
+};
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
 };
 
 export default MapComponent;
