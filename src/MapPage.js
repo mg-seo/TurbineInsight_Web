@@ -1,28 +1,27 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LoadScriptNext } from '@react-google-maps/api';
-import { FaEdit, FaCheck } from 'react-icons/fa'; // 수정 아이콘과 체크 아이콘 import
-import Sidebar from './Sidebar'; // 사이드바 컴포넌트
-import Modal from './Modal'; // 모달 컴포넌트 import
+import { FaEdit, FaCheck } from 'react-icons/fa';
+import Sidebar from './Sidebar';
+import Modal from './Modal';
 
 const MapComponent = () => {
   const mapRef = useRef(null);
-  const mapInstance = useRef(null); // Google Maps 객체를 저장할 Ref
-  const [selectedSection, setSelectedSection] = useState(''); // 선택된 섹션 상태 관리
-  const [isEditing, setIsEditing] = useState(false); // 수정 모드 상태 관리
-  const [title, setTitle] = useState('가산 해상풍력단지'); // 제목 상태 관리
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림/닫힘 상태 관리
-  const [selectedMarker, setSelectedMarker] = useState(null); // 선택된 마커 저장
+  const mapInstance = useRef(null);
+  const [selectedSection, setSelectedSection] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState('가산 해상풍력단지');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingMarker, setPendingMarker] = useState(null);
   const [markers, setMarkers] = useState([]); // 마커 목록 상태
-  const [isPlacingMarker, setIsPlacingMarker] = useState(false); // 마커 추가 모드 상태 관리
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // 지도를 처음 로드할 때 한 번만 초기화
   useEffect(() => {
-    if (mapRef.current && !mapInstance.current && window.google) {
+    if (isMapLoaded && mapRef.current && !mapInstance.current && window.google) {
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
         zoom: 12,
-        center: { lat: 37.5665, lng: 126.9780 }, // 서울 기본 위치
+        center: { lat: 37.5665, lng: 126.9780 },
         minZoom: 5,
-        maxZoom: 15, // 확대/축소 제한 설정
+        maxZoom: 15,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -30,49 +29,83 @@ const MapComponent = () => {
         disableDefaultUI: false,
       });
 
-      // 지도 클릭 이벤트 추가
+      // 지도 클릭 시 마커 추가 및 모달 열기
       mapInstance.current.addListener('click', (event) => {
-        if (isPlacingMarker) {
-          addMarker(event.latLng); // 클릭한 위치에 마커 추가
-        }
+        handleMapClick(event.latLng);
       });
     }
-  }, [isPlacingMarker]);
+  }, [isMapLoaded]);
 
-  // 마커 추가 함수
-  const addMarker = (location) => {
+  // 지도 클릭 시 마커 생성 및 애니메이션 처리 후 모달 열기
+  const handleMapClick = (location) => {
+    const marker = new window.google.maps.Marker({
+      position: location,
+      map: mapInstance.current,
+      title: `마커 ${markers.length + 1}`,
+      animation: window.google.maps.Animation.DROP, // DROP 애니메이션 적용
+    });
+
     const newMarker = {
-      id: markers.length + 1, // 고유 id 부여
+      id: markers.length + 1,
       name: `마커 ${markers.length + 1}`,
-      coordinates: `${location.lat()}, ${location.lng()}`, // 클릭한 좌표
-      model: '모델 A',
+      position: location,
+      markerInstance: marker,
     };
 
-    // 새로운 마커 추가
-    setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+    // 새로 추가할 마커를 대기 상태로 설정
+    setPendingMarker(newMarker); 
+    setIsModalOpen(true); // 모달 창 열기
 
-    // 마커 추가 후 모드 종료
-    setIsPlacingMarker(false);
+    // 마커 클릭 시 수정 가능한 모달 창 열기
+    marker.addListener('click', () => {
+      handleEditMarker(newMarker);
+    });
   };
 
-  // 모달을 열고 선택된 마커 정보 설정
-  const handleEditClick = (marker) => {
-    setSelectedMarker(marker);
-    setIsModalOpen(true);
+  // 모달에서 "등록하기" 클릭 시 마커 목록에 추가/수정
+  const handleRegisterMarker = (updatedMarker) => {
+    // 기존 마커 목록에 새 마커를 추가
+    setMarkers((prevMarkers) => [...prevMarkers, updatedMarker]); // 목록에 새 마커 추가
+    setPendingMarker(null); // 등록 후 대기 중 마커 초기화
+    setIsModalOpen(false); // 모달 닫기
+  };
+
+  // 모달에서 마커 삭제 버튼 클릭 시
+  const handleDeleteMarker = (marker) => {
+    // 지도에서 해당 마커만 삭제
+    marker.markerInstance.setMap(null); 
+
+    // 마커 목록에서 해당 마커만 삭제
+    setMarkers((prevMarkers) => prevMarkers.filter((m) => m.id !== marker.id));
+
+    // 모달 닫기 및 대기 중 마커 초기화
+    setPendingMarker(null);
+    setIsModalOpen(false);
+  };
+
+  // 마커 클릭 시 수정 가능한 모달을 여는 함수
+  const handleEditMarker = (marker) => {
+    setPendingMarker(marker); // 수정할 마커 설정
+    setIsModalOpen(true); // 모달 열기
   };
 
   // 모달 닫기
   const handleCloseModal = () => {
     setIsModalOpen(false);
-  };
-
-  // 마커 지정 모드로 전환
-  const startPlacingMarker = () => {
-    setIsPlacingMarker(true);
+    setPendingMarker(null); // 대기 중 마커 초기화
   };
 
   return (
     <div style={mainContainerStyle}>
+      <LoadScriptNext
+        googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
+        onLoad={() => setIsMapLoaded(true)}
+        loadingElement={<div>지도를 로딩 중입니다...</div>}
+      >
+        {/* 지도 컨테이너 */}
+        <div ref={mapRef} style={mapContainerStyle} />
+      </LoadScriptNext>
+
       {/* 제목을 지도 위에 추가 */}
       <div style={titleWrapperStyle}>
         {isEditing ? (
@@ -97,12 +130,12 @@ const MapComponent = () => {
         )}
       </div>
 
-      {/* 사이드바와 상세 바를 함께 배치 */}
+      {/* 사이드바 */}
       <div style={sidebarWrapperStyle}>
         <Sidebar setSelectedSection={setSelectedSection} />
       </div>
 
-      {/* 선택된 섹션에 따른 목록 표시 */}
+      {/* 마커 목록 표시 */}
       <div
         style={{
           ...detailSectionStyle,
@@ -110,15 +143,14 @@ const MapComponent = () => {
           transition: 'transform 0.5s ease',
         }}
       >
-        {/* 마커 목록 표시 (selectedSection === 0) */}
         {selectedSection === 0 && (
           <>
             <div style={detailHeaderStyle}>
               <button style={closeButtonStyle} onClick={() => setSelectedSection('')}>X</button>
             </div>
             <h3 style={{ textAlign: 'center' }}>마커 목록</h3>
-            {markers.map((marker) => (
-              <div key={marker.id} style={markerItemStyle}>
+            {markers.map((marker, index) => (
+              <div key={index} style={markerItemStyle}>
                 <img
                   src="https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2_hdpi.png"
                   alt="Marker Icon"
@@ -127,11 +159,12 @@ const MapComponent = () => {
                 <div style={markerTextStyle}>
                   <div style={markerNameStyle}>
                     <strong>{marker.name}</strong>
-                    <div style={markerModelStyle}>{marker.model}</div>
                   </div>
-                  <div style={markerCoordinatesStyle}>좌표: {marker.coordinates}</div>
+                  <div style={markerCoordinatesStyle}>
+                    좌표: {marker.position.lat().toFixed(6)}, {marker.position.lng().toFixed(6)}
+                  </div>
                 </div>
-                <button style={editButtonStyle} onClick={() => handleEditClick(marker)}>
+                <button style={editButtonStyle} onClick={() => handleEditMarker(marker)}>
                   <FaEdit />
                 </button>
               </div>
@@ -140,34 +173,29 @@ const MapComponent = () => {
         )}
       </div>
 
-      {/* 지도 */}
-      <div style={mapWrapperStyle}>
-        <LoadScriptNext
-          googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
-          loadingElement={<div>지도를 로딩 중입니다...</div>}
-        >
-          <div ref={mapRef} style={mapContainerStyle} />
-        </LoadScriptNext>
-      </div>
-
-      {/* 마커 지정 버튼 */}
-      <button style={placeMarkerButtonStyle} onClick={startPlacingMarker}>
-        지도에서 지정하기
-      </button>
-
       {/* 모달 컴포넌트 추가 */}
-      <Modal show={isModalOpen} onClose={handleCloseModal} marker={selectedMarker} />
+      <Modal
+        show={isModalOpen}
+        onClose={handleCloseModal}
+        marker={pendingMarker}
+        onRegister={handleRegisterMarker}
+        onDelete={handleDeleteMarker}
+      />
     </div>
   );
 };
 
-// 전체 레이아웃 스타일 (사이드바 + 상세 바와 지도 나란히 배치)
+// 스타일 정의
 const mainContainerStyle = {
   display: 'flex',
   height: '100vh',
 };
 
-// 제목과 버튼을 감싸는 스타일
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
+
 const titleWrapperStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -184,14 +212,12 @@ const titleWrapperStyle = {
   minWidth: '200px',
 };
 
-// 제목 스타일
 const titleStyle = {
   fontSize: '17px',
   textAlign: 'center',
   flex: 1,
 };
 
-// 수정 버튼 스타일
 const editButtonStyle = {
   background: 'none',
   border: 'none',
@@ -202,7 +228,6 @@ const editButtonStyle = {
   paddingLeft: '5px',
 };
 
-// 체크 버튼 스타일
 const checkButtonStyle = {
   background: 'none',
   border: 'none',
@@ -213,7 +238,6 @@ const checkButtonStyle = {
   color: '#ccc',
 };
 
-// 제목 입력 필드 스타일
 const inputStyle = {
   width: '100%',
   padding: '5px',
@@ -223,13 +247,18 @@ const inputStyle = {
   textAlign: 'center',
 };
 
-// 사이드바 래퍼 스타일
 const sidebarWrapperStyle = {
   zIndex: 3,
   width: '125px',
+  position: 'absolute',
+  left: '0px',
+  top: '0px',
+  height: '100%',
+  backgroundColor: 'white',
+  boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+  overflowY: 'auto',
 };
 
-// 상세 바 스타일
 const detailSectionStyle = {
   width: '250px',
   background: '#f9f9f9',
@@ -243,87 +272,48 @@ const detailSectionStyle = {
   zIndex: 2,
 };
 
-// 상세 바 헤더 스타일
-const detailHeaderStyle = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-};
-
-// 닫기 버튼 스타일
-const closeButtonStyle = {
-  background: 'none',
-  border: 'none',
-  fontSize: '16px',
-  cursor: 'pointer',
-};
-
-// 마커 아이템 스타일
 const markerItemStyle = {
   display: 'flex',
-  alignItems: 'flex-start', // 아이콘과 텍스트 상단 맞춤
+  alignItems: 'flex-start',
   justifyContent: 'space-between',
   padding: '10px',
   borderBottom: '1px solid #ccc',
 };
 
-// 마커 아이콘 스타일
 const markerIconStyle = {
   width: '20px',
   height: '20px',
   marginRight: '10px',
-  objectFit: 'contain', // 아이콘 찌그러짐 방지
+  objectFit: 'contain',
 };
 
-// 마커 텍스트 스타일
 const markerTextStyle = {
   flex: 1,
   marginLeft: '10px',
 };
 
-// 마커 이름 스타일
 const markerNameStyle = {
   display: 'flex',
-  justifyContent: 'space-between', // 이름과 모델명 정렬
+  justifyContent: 'space-between',
   width: '100%',
 };
 
-// 마커 모델명 스타일 (오른쪽 배치)
-const markerModelStyle = {
-  color: 'gray',
-  fontSize: '0.9rem',
-};
-
-// 마커 좌표 스타일
 const markerCoordinatesStyle = {
   color: 'gray',
   fontSize: '0.8rem',
-  marginTop: '5px', // 이름과 좌표 사이 간격
+  marginTop: '5px',
 };
 
-// 지도 컨테이너 스타일
-const mapWrapperStyle = {
-  flex: 1,
-  position: 'relative',
-  zIndex: 1,
+const detailHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'flex-end',
 };
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%',
-};
-
-// 마커 지정 버튼 스타일
-const placeMarkerButtonStyle = {
-  position: 'absolute',
-  top: '10px',
-  right: '10px',
-  padding: '10px 20px',
-  backgroundColor: '#4CAF50',
-  color: 'white',
+const closeButtonStyle = {
+  background: 'none',
   border: 'none',
-  borderRadius: '5px',
+  fontSize: '16px',
   cursor: 'pointer',
-  zIndex: 9999,
 };
 
 export default MapComponent;

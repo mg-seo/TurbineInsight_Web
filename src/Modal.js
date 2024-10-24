@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const Modal = ({ show, onClose, marker }) => {
-  if (!show) return null; // show가 false일 때는 모달을 렌더링하지 않음
+const Modal = ({ show, onClose, marker, onRegister, onDelete }) => {
+  const [name, setName] = useState(marker?.name || '');
+  const [model, setModel] = useState(marker?.model || '두산중공업 풍력 발전기');
+  const [angle, setAngle] = useState(0);
+
+  if (!show) return null;
+
+  const handleRegisterClick = () => {
+    const updatedMarker = {
+      ...marker,
+      name,
+      model,
+      angle,
+    };
+    onRegister(updatedMarker);  // 수정된 마커 정보 전달
+  };
 
   return (
     <div style={overlayStyle}>
@@ -13,11 +27,16 @@ const Modal = ({ show, onClose, marker }) => {
         <div style={contentWrapperStyle}>
           <div style={formGroupStyle}>
             <label>마커 이름</label>
-            <input type="text" value={marker.name} style={inputStyle} />
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={inputStyle}
+            />
           </div>
           <div style={formGroupStyle}>
             <label>모델 지정</label>
-            <select style={inputStyle}>
+            <select value={model} onChange={(e) => setModel(e.target.value)} style={inputStyle}>
               <option>두산중공업 풍력 발전기</option>
               <option>현대중공업 풍력 발전기</option>
             </select>
@@ -31,19 +50,24 @@ const Modal = ({ show, onClose, marker }) => {
           </div>
           <div style={formGroupStyle}>
             <label>방향 각도</label>
-            <input type="number" value="0" style={inputStyle} />
+            <input
+              type="number"
+              value={angle}
+              onChange={(e) => setAngle(e.target.value)}
+              style={inputStyle}
+            />
           </div>
         </div>
         <div style={buttonWrapperStyle}>
           <button style={cancelButtonStyle} onClick={onClose}>취소하기</button>
-          <button style={deleteButtonStyle}>삭제하기</button>
+          <button style={deleteButtonStyle} onClick={() => onDelete(marker)}>삭제하기</button>
+          <button style={registerButtonStyle} onClick={handleRegisterClick}>등록하기</button>
         </div>
       </div>
     </div>
   );
 };
 
-// 스타일 설정
 const overlayStyle = {
   position: 'fixed',
   top: 0,
@@ -127,6 +151,15 @@ const cancelButtonStyle = {
 const deleteButtonStyle = {
   padding: '10px 20px',
   backgroundColor: '#e74c3c',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+};
+
+const registerButtonStyle = {
+  padding: '10px 20px',
+  backgroundColor: '#4CAF50',
   color: 'white',
   border: 'none',
   borderRadius: '5px',
