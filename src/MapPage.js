@@ -14,35 +14,51 @@ const MapComponent = () => {
   const [pendingMarker, setPendingMarker] = useState(null);
   const [markers, setMarkers] = useState([]); // 마커 목록 상태
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [businessMarkers, setBusinessMarkers] = useState([]); // 사업별 마커 상태
 
+  // 사업 목록 예시 데이터
+  const businesses = [
+    { id: 1, name: '사업 1', color: '#0000FF', markers: [{ lat: 37.5665, lng: 126.9780 }] },
+    { id: 2, name: '사업 2', color: '#000000', markers: [{ lat: 37.5775, lng: 126.9880 }] },
+  ];
+
+  // 지도 및 마커 초기화
   useEffect(() => {
-    if (isMapLoaded && mapRef.current && !mapInstance.current && window.google) {
-      mapInstance.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 12,
-        center: { lat: 37.5665, lng: 126.9780 },
-        minZoom: 5,
-        maxZoom: 15,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        clickableIcons: false,
-        disableDefaultUI: false,
-      });
+    const initMap = async () => {
+      const { AdvancedMarkerElement, PinElement } = await window.google.maps.importLibrary('marker'); // google 객체를 window를 통해 가져옴
 
-      // 지도 클릭 시 마커 추가 및 모달 열기
-      mapInstance.current.addListener('click', (event) => {
-        handleMapClick(event.latLng);
-      });
+      if (mapRef.current && !mapInstance.current && window.google) {
+        mapInstance.current = new window.google.maps.Map(mapRef.current, {
+          zoom: 12,
+          center: { lat: 37.5665, lng: 126.9780 },
+          minZoom: 5,
+          maxZoom: 15,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          clickableIcons: false,
+          disableDefaultUI: false,
+          mapId: 'DEMO_MAP_ID', // Map ID 추가
+        });
+
+        // 지도 클릭 시 마커 추가 및 모달 열기
+        mapInstance.current.addListener('click', (event) => {
+          handleMapClick(event.latLng, AdvancedMarkerElement);
+        });
+      }
+    };
+
+    if (isMapLoaded) {
+      initMap(); // 지도 로드 완료 시 initMap 호출
     }
   }, [isMapLoaded]);
 
   // 지도 클릭 시 마커 생성 및 애니메이션 처리 후 모달 열기
-  const handleMapClick = (location) => {
-    const marker = new window.google.maps.Marker({
+  const handleMapClick = (location, AdvancedMarkerElement) => {
+    const marker = new AdvancedMarkerElement({
       position: location,
       map: mapInstance.current,
       title: `마커 ${markers.length + 1}`,
-      animation: window.google.maps.Animation.DROP, // DROP 애니메이션 적용
     });
 
     const newMarker = {
@@ -52,8 +68,7 @@ const MapComponent = () => {
       markerInstance: marker,
     };
 
-    // 새로 추가할 마커를 대기 상태로 설정
-    setPendingMarker(newMarker); 
+    setPendingMarker(newMarker); // 새로 추가할 마커를 대기 상태로 설정
     setIsModalOpen(true); // 모달 창 열기
 
     // 마커 클릭 시 수정 가능한 모달 창 열기
@@ -62,9 +77,34 @@ const MapComponent = () => {
     });
   };
 
+  // 사업별 마커 생성 및 지도에 표시
+  const handleBusinessMarkerToggle = async (business, checked) => {
+    const { AdvancedMarkerElement, PinElement } = await window.google.maps.importLibrary('marker');
+
+    if (checked) {
+      const newBusinessMarkers = business.markers.map((marker, index) => {
+        const pinBackground = new PinElement({
+          background: business.color, // 사업별로 다른 배경색 설정
+        });
+
+        const newMarker = new AdvancedMarkerElement({
+          position: marker,
+          map: mapInstance.current,
+          content: pinBackground.element,
+        });
+
+        return newMarker;
+      });
+      setBusinessMarkers((prev) => [...prev, ...newBusinessMarkers]);
+    } else {
+      // 체크 해제 시 해당 사업의 모든 마커 삭제
+      businessMarkers.forEach((marker) => marker.setMap(null));
+      setBusinessMarkers([]);
+    }
+  };
+
   // 모달에서 "등록하기" 클릭 시 마커 목록에 추가/수정
   const handleRegisterMarker = (updatedMarker) => {
-    // 기존 마커 목록에 새 마커를 추가
     setMarkers((prevMarkers) => [...prevMarkers, updatedMarker]); // 목록에 새 마커 추가
     setPendingMarker(null); // 등록 후 대기 중 마커 초기화
     setIsModalOpen(false); // 모달 닫기
@@ -73,7 +113,7 @@ const MapComponent = () => {
   // 모달에서 마커 삭제 버튼 클릭 시
   const handleDeleteMarker = (marker) => {
     // 지도에서 해당 마커만 삭제
-    marker.markerInstance.setMap(null); 
+    marker.markerInstance.setMap(null);
 
     // 마커 목록에서 해당 마커만 삭제
     setMarkers((prevMarkers) => prevMarkers.filter((m) => m.id !== marker.id));
@@ -99,14 +139,13 @@ const MapComponent = () => {
     <div style={mainContainerStyle}>
       <LoadScriptNext
         googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
+        libraries={['marker']} // AdvancedMarkerElement와 PinElement를 사용하려면 'marker' 라이브러리를 포함
         onLoad={() => setIsMapLoaded(true)}
         loadingElement={<div>지도를 로딩 중입니다...</div>}
       >
-        {/* 지도 컨테이너 */}
         <div ref={mapRef} style={mapContainerStyle} />
       </LoadScriptNext>
 
-      {/* 제목을 지도 위에 추가 */}
       <div style={titleWrapperStyle}>
         {isEditing ? (
           <>
@@ -130,12 +169,10 @@ const MapComponent = () => {
         )}
       </div>
 
-      {/* 사이드바 */}
       <div style={sidebarWrapperStyle}>
         <Sidebar setSelectedSection={setSelectedSection} />
       </div>
 
-      {/* 마커 목록 표시 */}
       <div
         style={{
           ...detailSectionStyle,
@@ -171,9 +208,27 @@ const MapComponent = () => {
             ))}
           </>
         )}
+
+        {/* 사업 목록 표시 */}
+        {selectedSection === 1 && (
+          <>
+            <div style={detailHeaderStyle}>
+              <button style={closeButtonStyle} onClick={() => setSelectedSection('')}>X</button>
+            </div>
+            <h3 style={{ textAlign: 'center' }}>사업 목록</h3>
+            {businesses.map((business) => (
+              <div key={business.id} style={markerItemStyle}>
+                <input
+                  type="checkbox"
+                  onChange={(e) => handleBusinessMarkerToggle(business, e.target.checked)}
+                />
+                <span>{business.name}</span>
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
-      {/* 모달 컴포넌트 추가 */}
       <Modal
         show={isModalOpen}
         onClose={handleCloseModal}
