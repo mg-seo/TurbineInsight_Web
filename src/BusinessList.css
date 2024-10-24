@@ -11,19 +11,21 @@
   width: 800px;
   min-height: 1000px;
   padding: 20px;
-  background-color: #f9f9f9;
+  /* background-color: #f9f9f9; */
+  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
+  border-top: 3px solid rgb(0, 0, 191);
+  border-bottom: 3px solid rgb(184, 126, 0);
 }
 
 /* Header Section */
 .header {
-  background-color: #003399;
-  color: white;
-  padding: 10px;
-  font-size: 24px;
-  text-align: center;
+  cursor: pointer;
+  width: 820px;
+  height: 100px;
+  margin: 0 auto;
 }
 
 /* Slider Banner Section */
@@ -34,24 +36,29 @@
   margin: 20px 0;
   overflow: hidden;
   border-radius: 8px;
-  border: 1px solid black;
+  background-color: #fff;
+}
+
+.slider-banner-wrapper {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%; /* 이미지의 개수에 맞게 크기 설정 */
 }
 
 .slider-image {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
 }
 
 /* Slider Controls */
-.prev-slide, .next-slide {
+.prev-slide,
+.next-slide {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.5);
   border: none;
   cursor: pointer;
-  font-size: 36px;
+  font-size: 24px;
   color: white;
   z-index: 10;
   width: 30px;
@@ -61,7 +68,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease;
 }
 
 .prev-slide {
@@ -107,7 +114,7 @@
   flex: 1;
   padding: 8px;
   margin-right: 8px;
-  border: 1px solid #ccc;
+  /* border: 1px solid #ccc; */
   border-radius: 24px;
   background-color: #eaf1fb;
   min-height: 32px;
@@ -160,10 +167,10 @@
 }
 
 .business-card {
-  border: 1px solid #ddd;
+  /* border: 1px solid #ddd; */
   padding: 16px;
   margin-bottom: 16px;
-  background-color: white;
+  background-color: #f0f0f0;
   border-radius: 8px;
 }
 
@@ -207,7 +214,7 @@
   width: 100%;
   padding: 8px;
   margin: 10px 0;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 4px;
   resize: none;
   box-sizing: border-box;
@@ -260,6 +267,7 @@
   border: 1px dashed #ccc;
   cursor: pointer;
   border-radius: 4px;
+  background-color: white;
 }
 
 /* Delete Button Section */
@@ -387,7 +395,7 @@
   width: calc(100% - 20px);
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 8px;
   box-sizing: border-box;
   outline: none;

@@ -4,26 +4,31 @@ import './BusinessList.css'; // Assuming you have some CSS for styling
 import { MdAdd, MdDelete, MdSearch } from 'react-icons/md';
 import { AiOutlineDown, AiOutlineUp, AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 import { IoCloseCircleOutline } from 'react-icons/io5';
+import headerImage from './img/header_proto01.png';
+import banner01 from './img/banner01.png';
+import banner02 from './img/banner02.png';
+import banner03 from './img/banner03.png';
 
 const BusinessList = ({ setSelectedBusiness }) => {
     // Slider state and functionality
     const [sliderIndex, setSliderIndex] = useState(0);
 
     const sliderImages = [
-        '/images/banner1.jpg',
-        '/images/banner2.jpg',
-        '/images/banner3.jpg',
+        banner01,
+        banner02,
+        banner03
     ];
 
+    // 자동 슬라이드 기능
     useEffect(() => {
         const autoSlide = setInterval(() => {
-            setSliderIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
-        }, 3000); // 자동으로 3초만부터 나오도록 설정
+        setSliderIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
+        }, 3000); // 자동으로 3초마다 다음 슬라이드
 
         return () => clearInterval(autoSlide);
-    }, [sliderImages.length]);
+    }, []);
 
-    // Manual slide navigation handlers
+    // 수동 슬라이드 핸들러
     const handleNextSlide = () => {
         setSliderIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
     };
@@ -34,11 +39,11 @@ const BusinessList = ({ setSelectedBusiness }) => {
 
     // Business list state and functionality
     const [businesses, setBusinesses] = useState([
-        { id: 1, name: '가산 풍력단지', date: '2024.10.06', images: [], memo: '' },
-        { id: 2, name: '나산 풍력단지', date: '2024.10.06', images: [], memo: '' },
-        { id: 3, name: '다산 풍력단지', date: '2024.10.06', images: [], memo: '' },
-        { id: 4, name: '라산 풍력단지', date: '2024.10.06', images: [], memo: '' },
-        { id: 5, name: '마산 풍력단지', date: '2024.10.06', images: [], memo: '' },
+        { id: 1, name: '마산 풍력단지', date: '2024.10.24', images: [], memo: '' },
+        { id: 2, name: '라산 풍력단지', date: '2024.10.23', images: [], memo: '' },
+        { id: 3, name: '다산 풍력단지', date: '2024.10.22', images: [], memo: '' },
+        { id: 4, name: '나산 풍력단지', date: '2024.10.22', images: [], memo: '' },
+        { id: 5, name: '가산 풍력단지', date: '2024.10.22', images: [], memo: '' },
     ]);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedCards, setExpandedCards] = useState({});
@@ -207,113 +212,115 @@ const BusinessList = ({ setSelectedBusiness }) => {
     return (
         <div className="business-list-container">
             {/* Header section */}
+            <header className="header" onClick={() => window.location.reload()}>
+                <img src={headerImage} alt="Header" />
+            </header>
+
             <div className="business-list">
-                <header className="header">
-                    <div className="logo">DOOSAN</div>
-                </header>
-
-                <div className="content-wrapper">
-                    {/* Slider banner section */}
-                    <div className="slider-banner">
-                        <button className="prev-slide" onClick={handlePrevSlide}>
-                            <AiOutlineLeft />
-                        </button>
-                        <img src={sliderImages[sliderIndex]} alt="Slider Banner" className="slider-image" />
-                        <button className="next-slide" onClick={handleNextSlide}>
-                            <AiOutlineRight />
-                        </button>
-                        <div className="slider-indicator">
-                            {`${sliderIndex + 1} / ${sliderImages.length}`}
-                        </div>
+                
+                {/* Slider banner section */}
+                <div className="slider-banner">
+                    <button className="prev-slide" onClick={handlePrevSlide}>
+                        <AiOutlineLeft />
+                    </button>
+                    <div className="slider-banner-wrapper" style={{ transform: `translateX(-${sliderIndex * 100}%)` }}>
+                        {sliderImages.map((image, index) => (
+                        <img key={index} src={image} alt={`Slide ${index}`} className="slider-image" />
+                        ))}
                     </div>
-
-                    {/* Content section */}
-                    <div className="content">
-                        {/* Search bar section */}
-                        <div className="search-bar">
-                            <div className="search-input">
-                                <MdSearch className="search-icon" />
-                                <input
-                                    type="text"
-                                    placeholder="사업지 검색"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                            <div className="action-buttons">
-                                <button className="add-button" onClick={handleAddButtonClick}>
-                                    <MdAdd />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Business cards section */}
-                        <div className="business-cards">
-                            {filteredBusinesses.length === 0 ? (
-                                <p className="no-businesses-message">추가된 사업지가 없습니다.</p>
-                            ) : (
-                                filteredBusinesses.map((business) => (
-                                    <div key={business.id} className="business-card">
-                                        <div className="business-info">
-                                            <span className="business-name" onClick={() => handleBusinessClick(business)}>{business.name}</span>
-                                            <span className="business-date">{business.date}</span>
-                                            <button className="expand-button" onClick={() => handleExpandClick(business.id)}>
-                                                {expandedCards[business.id] ? <AiOutlineUp /> : <AiOutlineDown />}
-                                            </button>
-                                        </div>
-                                        {expandedCards[business.id] && (
-                                            <div className="business-details-expanded">
-                                                <div className="expanded-text">• 메모</div>
-                                                <textarea 
-                                                    className="memo-textarea"
-                                                    placeholder="여기에 메모를 입력하세요..." 
-                                                    value={business.memo}
-                                                    onChange={(e) => handleMemoChange(business.id, e)}
-                                                    rows="1"
-                                                    style={{ overflow: 'hidden' }}
-                                                />
-                                                <div className="expanded-text">• 사진</div>
-                                                <div className="thumbnail-carousel">
-                                                    {business.images.map((image, index) => (
-                                                        <div key={index} className="thumbnail">
-                                                            <img src={image} alt={`사업 이미지 ${index + 1}`} onClick={() => handleImageClick(business.id, index)} />
-                                                            <button
-                                                                className="delete-thumbnail"
-                                                                onClick={() => handleDeleteImage(business.id, index)}
-                                                            >
-                                                                <IoCloseCircleOutline />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    {business.images.length < 20 && (
-                                                        <label htmlFor={`file-input-${business.id}`} className="add-thumbnail">
-                                                            <MdAdd />
-                                                            <input
-                                                                id={`file-input-${business.id}`}
-                                                                type="file"
-                                                                accept="image/*"
-                                                                onChange={(e) => handleAddImage(business.id, e)}
-                                                                style={{ display: 'none' }}
-                                                            />
-                                                        </label>
-                                                    )}
-                                                </div>
-                                                <div className='delete-button-container'>
-                                                    <button className="delete-button" onClick={() => handleDeleteButtonClick(business.id)}>
-                                                        <MdDelete/>삭제
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
+                    <button className="next-slide" onClick={handleNextSlide}>
+                        <AiOutlineRight />
+                    </button>
+                    <div className="slider-indicator">
+                        {`${sliderIndex + 1} / ${sliderImages.length}`}
                     </div>
                 </div>
 
-                
+                {/* Content section */}
+                <div className="content">
+                    {/* Search bar section */}
+                    <div className="search-bar">
+                        <div className="search-input">
+                            <MdSearch className="search-icon" />
+                            <input
+                                type="text"
+                                placeholder="사업지 검색"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <div className="action-buttons">
+                            <button className="add-button" onClick={handleAddButtonClick}>
+                                <MdAdd />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Business cards section */}
+                    <div className="business-cards">
+                        {filteredBusinesses.length === 0 ? (
+                            <p className="no-businesses-message">추가된 사업지가 없습니다.</p>
+                        ) : (
+                            filteredBusinesses.map((business) => (
+                                <div key={business.id} className="business-card">
+                                    <div className="business-info">
+                                        <span className="business-name" onClick={() => handleBusinessClick(business)}>{business.name}</span>
+                                        <span className="business-date">{business.date}</span>
+                                        <button className="expand-button" onClick={() => handleExpandClick(business.id)}>
+                                            {expandedCards[business.id] ? <AiOutlineUp /> : <AiOutlineDown />}
+                                        </button>
+                                    </div>
+                                    {expandedCards[business.id] && (
+                                        <div className="business-details-expanded">
+                                            <div className="expanded-text">• 메모</div>
+                                            <textarea 
+                                                className="memo-textarea"
+                                                placeholder="여기에 메모를 입력하세요..." 
+                                                value={business.memo}
+                                                onChange={(e) => handleMemoChange(business.id, e)}
+                                                rows="1"
+                                                style={{ overflow: 'hidden' }}
+                                            />
+                                            <div className="expanded-text">• 사진</div>
+                                            <div className="thumbnail-carousel">
+                                                {business.images.map((image, index) => (
+                                                    <div key={index} className="thumbnail">
+                                                        <img src={image} alt={`사업 이미지 ${index + 1}`} onClick={() => handleImageClick(business.id, index)} />
+                                                        <button
+                                                            className="delete-thumbnail"
+                                                            onClick={() => handleDeleteImage(business.id, index)}
+                                                        >
+                                                            <IoCloseCircleOutline />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {business.images.length < 20 && (
+                                                    <label htmlFor={`file-input-${business.id}`} className="add-thumbnail">
+                                                        <MdAdd />
+                                                        <input
+                                                            id={`file-input-${business.id}`}
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => handleAddImage(business.id, e)}
+                                                            style={{ display: 'none' }}
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+                                            <div className='delete-button-container'>
+                                                <button className="delete-button" onClick={() => handleDeleteButtonClick(business.id)}>
+                                                    <MdDelete/>삭제
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                </div>
+               
             </div>
             
             {/* Footer section */}
