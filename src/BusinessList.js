@@ -26,7 +26,7 @@ const BusinessList = ({ setSelectedBusiness }) => {
         }, 3000); // 자동으로 3초마다 다음 슬라이드
 
         return () => clearInterval(autoSlide);
-    }, []);
+    }, [sliderImages.length]);
 
     // 수동 슬라이드 핸들러
     const handleNextSlide = () => {
