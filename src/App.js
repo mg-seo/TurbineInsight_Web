@@ -2,16 +2,24 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BusinessList from './BusinessList';
 import MapPage from './MapPage';
+import Login from './Login';
+import api from './api';
 
 const App = () => {
     const [selectedBusiness, setSelectedBusiness] = useState(null);
+    const [userId, setUserId] = useState(null);
 
     return (
         <Router>
             <Routes>
-                {/* BusinessList 컴포넌트에 setSelectedBusiness 전달 */}
+                {/* Login 컴포넌트에 setUserId 전달 */}
                 <Route
                     path="/"
+                    element={<Login setUserId={setUserId} />}
+                />
+                {/* BusinessList 컴포넌트에 setSelectedBusiness 전달 */}
+                <Route
+                    path="/business-list"
                     element={<BusinessList setSelectedBusiness={setSelectedBusiness} />}
                 />
                 <Route
