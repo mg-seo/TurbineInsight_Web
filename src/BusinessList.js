@@ -8,8 +8,9 @@ import headerImage from './img/header_proto01.png';
 import banner01 from './img/banner01.png';
 import banner02 from './img/banner02.png';
 import banner03 from './img/banner03.png';
+import api from './api';
 
-const BusinessList = ({ setSelectedBusiness }) => {
+const BusinessList = ({ setSelectedBusiness, userId }) => {
     // Slider state and functionality
     const [sliderIndex, setSliderIndex] = useState(0);
 
@@ -26,7 +27,33 @@ const BusinessList = ({ setSelectedBusiness }) => {
         }, 3000); // 자동으로 3초마다 다음 슬라이드
 
         return () => clearInterval(autoSlide);
-    }, [sliderImages.length]);
+    }, []);
+
+    // 서버에서 사업체 목록 가져오기
+    const [businesses, setBusinesses] = useState([]);
+    useEffect(() => {
+        if (userId) {
+            api.get(`/api/businesses/list/${userId}`)
+                .then((response) => {
+                    // 서버에서 가져온 데이터를 정렬하여 상태에 저장
+                    const sortedData = response.data
+                        .map((business) => ({
+                            id: business.businessId,
+                            name: business.businessName,
+                            date: new Date(business.createdDate),
+                            lastModifiedDate: new Date(business.lastModifiedDate),
+                            images: [],
+                            memo: business.memo || ''
+                        }))
+                        .sort((a, b) => b.lastModifiedDate - a.lastModifiedDate); // 내림차순 정렬
+    
+                    setBusinesses(sortedData);
+                })
+                .catch((error) => {
+                    console.error('Error fetching business data:', error);
+                });
+        }
+    }, [userId]);
 
     // 수동 슬라이드 핸들러
     const handleNextSlide = () => {
@@ -37,14 +64,7 @@ const BusinessList = ({ setSelectedBusiness }) => {
         setSliderIndex((prevIndex) => (prevIndex - 1 + sliderImages.length) % sliderImages.length);
     };
 
-    // Business list state and functionality
-    const [businesses, setBusinesses] = useState([
-        { id: 1, name: '마산 풍력단지', date: '2024.10.24', images: [], memo: '' },
-        { id: 2, name: '라산 풍력단지', date: '2024.10.23', images: [], memo: '' },
-        { id: 3, name: '다산 풍력단지', date: '2024.10.22', images: [], memo: '' },
-        { id: 4, name: '나산 풍력단지', date: '2024.10.22', images: [], memo: '' },
-        { id: 5, name: '가산 풍력단지', date: '2024.10.22', images: [], memo: '' },
-    ]);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedCards, setExpandedCards] = useState({});
     const [popupImageIndex, setPopupImageIndex] = useState(null);
@@ -265,7 +285,7 @@ const BusinessList = ({ setSelectedBusiness }) => {
                                 <div key={business.id} className="business-card">
                                     <div className="business-info">
                                         <span className="business-name" onClick={() => handleBusinessClick(business)}>{business.name}</span>
-                                        <span className="business-date">{business.date}</span>
+                                        <span className="business-date">최종 수정일 {business.lastModifiedDate.toLocaleDateString()}</span>
                                         <button className="expand-button" onClick={() => handleExpandClick(business.id)}>
                                             {expandedCards[business.id] ? <AiOutlineUp /> : <AiOutlineDown />}
                                         </button>
