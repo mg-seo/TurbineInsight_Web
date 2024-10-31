@@ -103,6 +103,26 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞는 높이로 설정
     };
 
+    // Memo 저장 요청
+    const handleSaveMemo = (businessId) => {
+        const business = businesses.find((b) => b.id === businessId);
+        api.put(`/api/businesses/updateMemo/${businessId}`, null, {
+            params: { memo: business.memo }
+        })
+        .then((response) => {
+            // 성공적으로 저장된 경우 businesses 상태 업데이트
+            setBusinesses((prev) =>
+                prev.map((b) =>
+                    b.id === businessId ? { ...b, memo: response.data.memo } : b
+                )
+            );
+            console.log('Memo saved successfully');
+        })
+        .catch((error) => {
+            console.error('Error saving memo:', error);
+        });
+    };
+
     // Image handlers
     const handleAddImage = (businessId, event) => {
         const file = event.target.files[0];
@@ -321,6 +341,10 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                                 rows="1"
                                                 style={{ overflow: 'hidden' }}
                                             />
+                                            <button className="save-memo-button" 
+                                                    onClick={() => handleSaveMemo(business.id)}>
+                                                저장
+                                            </button>
                                             <div className="expanded-text">• 사진</div>
                                             <div className="thumbnail-carousel">
                                                 {business.images.map((image, index) => (
