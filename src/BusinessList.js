@@ -147,9 +147,17 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
     };
 
     const handleConfirmDelete = () => {
-        setBusinesses((prev) => prev.filter((business) => business.id !== selectedBusinessId));
-        setShowDeleteModal(false);
-        setSelectedBusinessId(null);
+        // 서버에 DELETE 요청 보내기
+        api.delete(`/api/businesses/delete/${selectedBusinessId}`)
+            .then(() => {
+                // 삭제된 사업체를 화면에서도 제거
+                setBusinesses((prev) => prev.filter((business) => business.id !== selectedBusinessId));
+                setShowDeleteModal(false);
+                setSelectedBusinessId(null);
+            })
+            .catch((error) => {
+                console.error('Error deleting business:', error);
+            });
     };
 
     const handleCancelDelete = () => {
@@ -175,16 +183,28 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     const handleAddBusiness = () => {
         if (newBusinessName.trim() !== '') {
-            const newBusiness = {
-                id: businesses.length + 1,
-                name: newBusinessName,
-                date: new Date().toISOString().split('T')[0],
-                images: [],
-                memo: ''
-            };
-            setBusinesses((prev) => [...prev, newBusiness]);
-            setShowAddModal(false);
-            setNewBusinessName('');
+            // 서버에 새 사업체 추가 요청
+            api.post('/api/businesses/create', null, {
+                params: { businessName: newBusinessName, userId }
+            })
+            .then((response) => {
+                const newBusiness = {
+                    id: response.data.businessId,
+                    name: response.data.businessName,
+                    date: new Date(response.data.createdDate).toLocaleDateString(),
+                    lastModifiedDate: new Date(response.data.lastModifiedDate),
+                    images: [],
+                    memo: response.data.memo || ''
+                };
+                
+                // 새로운 사업체를 businesses 목록에 추가
+                setBusinesses((prev) => [newBusiness, ...prev]); // 최근 항목을 위로 추가
+                setShowAddModal(false);
+                setNewBusinessName('');
+            })
+            .catch((error) => {
+                console.error('Error creating new business:', error);
+            });
         }
     };
 
