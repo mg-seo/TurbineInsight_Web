@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // useEffect 추가
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BusinessList from './BusinessList';
 import MapPage from './MapPage';
@@ -9,36 +9,30 @@ const App = () => {
     const [userId, setUserId] = useState(() => sessionStorage.getItem('userId') || null);
 
     useEffect(() => {
-        // userId가 변경될 때마다 sessionStorage에 저장
         if (userId) {
             sessionStorage.setItem('userId', userId);
         } else {
-            sessionStorage.removeItem('userId'); // 로그아웃 시 제거
+            sessionStorage.removeItem('userId');
         }
     }, [userId]);
 
     return (
         <Router>
             <Routes>
-                {/* Login 컴포넌트에 setUserId 전달 */}
-                <Route
-                    path="/"
-                    element={<Login setUserId={setUserId} />}
+                <Route path="/" element={<Login setUserId={setUserId} />} />
+                <Route 
+                    path="/business-list" 
+                    element={<BusinessList setSelectedBusiness={setSelectedBusiness} userId={userId} />} 
                 />
-                {/* BusinessList 컴포넌트에 setSelectedBusiness 전달 */}
-                <Route
-                    path="/business-list"
-                    element={<BusinessList setSelectedBusiness={setSelectedBusiness} userId={userId} />}
-                />
-                <Route
-                    path="/map"
+                <Route 
+                    path="/map" 
                     element={
                         selectedBusiness ? (
                             <MapPage business={selectedBusiness} />
                         ) : (
                             <div>사업을 선택해주세요</div>
                         )
-                    }
+                    } 
                 />
             </Routes>
         </Router>
