@@ -1,66 +1,125 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from './api';
 
-const Modal = ({ show, onClose, marker, onRegister, onDelete }) => {
-  const [name, setName] = useState(marker?.name || '');
-  const [model, setModel] = useState(marker?.model || '두산중공업 풍력 발전기');
+const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, businessId }) => {
+  const [name, setName] = useState('');
+  const [model, setModel] = useState('두산중공업 풍력 발전기');
   const [angle, setAngle] = useState(0);
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [activeTab, setActiveTab] = useState('model');
+
+  useEffect(() => {
+    if (marker) {
+      // markerId가 없으면 새로운 마커이므로 기본 이름을 설정
+      if (!marker.markerId) {
+        setName(`마커 ${markersLength + 1}`);
+      } else {
+        // 기존 마커인 경우에는 기존 이름을 그대로 사용
+        setName(marker.markerName || '');
+      }
+      setModel(marker.modelName || '두산중공업 풍력 발전기');
+      setAngle(marker.angle || 0);
+      setLatitude(marker.latitude || '');
+      setLongitude(marker.longitude || '');
+    }
+  }, [marker, markersLength]);
 
   if (!show) return null;
-
-  const handleRegisterClick = () => {
-    const updatedMarker = {
-      ...marker,
-      name,
-      model,
-      angle,
+  const handleRegisterClick = async () => {
+    const markerData = {
+      markerId: marker?.markerId || null, // 여기에서 markerId를 확인
+      markerName: name,
+      modelName: model,
+      angle: angle,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      businessId: businessId, // 비즈니스 ID 추가
     };
-    onRegister(updatedMarker);  // 수정된 마커 정보 전달
+  
+    console.log("Sending marker data:", markerData); // 로그로 데이터 확인
+  
+    try {
+      const response = await api.post('/api/businesses/map/post/marker/save', markerData);
+      onRegister(response.data);
+      onClose();
+    } catch (error) {
+      console.error("Failed to save marker:", error);
+    }
   };
 
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <div style={tabHeaderStyle}>
-          <button style={tabButtonStyle}>모델 지정</button>
-          <button style={tabButtonStyle}>좌표 지정</button>
+          <button
+            style={activeTab === 'model' ? activeTabButtonStyle : tabButtonStyle}
+            onClick={() => setActiveTab('model')}
+          >
+            모델 지정
+          </button>
+          <button
+            style={activeTab === 'coordinates' ? activeTabButtonStyle : tabButtonStyle}
+            onClick={() => setActiveTab('coordinates')}
+          >
+            좌표 지정
+          </button>
         </div>
         <div style={contentWrapperStyle}>
-          <div style={formGroupStyle}>
-            <label>마커 이름</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={formGroupStyle}>
-            <label>모델 지정</label>
-            <select value={model} onChange={(e) => setModel(e.target.value)} style={inputStyle}>
-              <option>두산중공업 풍력 발전기</option>
-              <option>현대중공업 풍력 발전기</option>
-            </select>
-          </div>
-          <div style={imageWrapperStyle}>
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Wind_turbine_Rødsand2.jpg"
-              alt="Wind Turbine"
-              style={imageStyle}
-            />
-          </div>
-          <div style={formGroupStyle}>
-            <label>방향 각도</label>
-            <input
-              type="number"
-              value={angle}
-              onChange={(e) => setAngle(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
+          {activeTab === 'model' ? (
+            <>
+              <div style={formGroupStyle}>
+                <label>마커 이름</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={formGroupStyle}>
+                <label>모델 지정</label>
+                <select value={model} onChange={(e) => setModel(e.target.value)} style={inputStyle}>
+                  <option>두산중공업 풍력 발전기</option>
+                  <option>현대중공업 풍력 발전기</option>
+                </select>
+              </div>
+              <div style={formGroupStyle}>
+                <label>방향 각도</label>
+                <input
+                  type="number"
+                  value={angle}
+                  onChange={(e) => setAngle(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={formGroupStyle}>
+                <label>위도</label>
+                <input
+                  type="number"
+                  value={latitude}
+                  onChange={(e) => setLatitude(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={formGroupStyle}>
+                <label>경도</label>
+                <input
+                  type="number"
+                  value={longitude}
+                  onChange={(e) => setLongitude(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </>
+          )}
         </div>
         <div style={buttonWrapperStyle}>
           <button style={cancelButtonStyle} onClick={onClose}>취소하기</button>
-          <button style={deleteButtonStyle} onClick={() => onDelete(marker)}>삭제하기</button>
+          <button style={deleteButtonStyle} onClick={() => onDelete(marker.markerId)}>삭제하기</button>
           <button style={registerButtonStyle} onClick={handleRegisterClick}>등록하기</button>
         </div>
       </div>
@@ -68,6 +127,8 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete }) => {
   );
 };
 
+
+// 스타일 정의
 const overlayStyle = {
   position: 'fixed',
   top: 0,
@@ -106,6 +167,12 @@ const tabButtonStyle = {
   margin: '0 5px',
 };
 
+const activeTabButtonStyle = {
+  ...tabButtonStyle,
+  backgroundColor: '#ddd',
+  fontWeight: 'bold',
+};
+
 const contentWrapperStyle = {
   display: 'flex',
   flexDirection: 'column',
@@ -124,15 +191,6 @@ const inputStyle = {
   padding: '8px',
   borderRadius: '5px',
   border: '1px solid #ccc',
-};
-
-const imageWrapperStyle = {
-  margin: '15px 0',
-};
-
-const imageStyle = {
-  width: '100%',
-  borderRadius: '5px',
 };
 
 const buttonWrapperStyle = {
