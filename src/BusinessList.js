@@ -84,12 +84,30 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         navigate('/map', { state: { business } });
     };
 
-    const handleExpandClick = (id) => {
+    // 특정 사업체의 모든 이미지 가져오기
+    const fetchImages = (businessId) => {
+        api.get(`/api/businesses/business/${businessId}`)
+            .then((response) => {
+                setBusinesses((prevBusinesses) =>
+                    prevBusinesses.map((business) =>
+                        business.id === businessId
+                            ? { ...business, images: response.data }
+                            : business
+                    )
+                );
+            })
+            .catch((error) => console.error('Error fetching images:', error));
+    };
+
+    // 카드 확장 시 이미지 불러오기
+    const handleExpandClick = (businessId) => {
         setExpandedCards((prev) => ({
             ...prev,
-            [id]: !prev[id],
+            [businessId]: !prev[businessId],
         }));
+        if (!expandedCards[businessId]) fetchImages(businessId);
     };
+
 
     // Memo state and handler
     const handleMemoChange = (businessId, e) => {
@@ -103,36 +121,67 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞는 높이로 설정
     };
 
-    // Image handlers
+    // Memo 저장 요청
+    const handleSaveMemo = (businessId) => {
+        const business = businesses.find((b) => b.id === businessId);
+        api.put(`/api/businesses/updateMemo/${businessId}`, null, {
+            params: { memo: business.memo }
+        })
+        .then((response) => {
+            // 성공적으로 저장된 경우 businesses 상태 업데이트
+            setBusinesses((prev) =>
+                prev.map((b) =>
+                    b.id === businessId ? { ...b, memo: response.data.memo } : b
+                )
+            );
+            console.log('Memo saved successfully');
+        })
+        .catch((error) => {
+            console.error('Error saving memo:', error);
+        });
+    };
+
+    // 이미지 추가하기
     const handleAddImage = (businessId, event) => {
         const file = event.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imageUrl = e.target.result;
-                setBusinesses((prev) =>
-                    prev.map((business) =>
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("businessId", businessId);
+
+            api.post("/api/businesses/add", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            })
+            .then((response) => {
+                setBusinesses((prevBusinesses) =>
+                    prevBusinesses.map((business) =>
                         business.id === businessId
-                            ? { ...business, images: [...business.images, imageUrl] }
+                            ? { ...business, images: [...business.images, response.data] }
                             : business
                     )
                 );
-            };
-            reader.readAsDataURL(file);
+                console.log('Image added successfully');
+            })
+            .catch((error) => {
+                console.error("Error adding image:", error);
+            });
         }
     };
 
-    const handleDeleteImage = (businessId, imageIndex) => {
-        setBusinesses((prev) =>
-            prev.map((business) =>
-                business.id === businessId
-                    ? {
-                          ...business,
-                          images: business.images.filter((_, index) => index !== imageIndex),
-                      }
-                    : business
-            )
-        );
+    // 이미지 삭제하기
+    const handleDeleteImage = (businessId, imageId) => {
+        api.delete(`/api/businesses/deleteImage/${imageId}`)
+            .then(() => {
+                setBusinesses((prevBusinesses) =>
+                    prevBusinesses.map((business) =>
+                        business.id === businessId
+                            ? { ...business, images: business.images.filter((img) => img.imageId !== imageId) }
+                            : business
+                    )
+                );
+                console.log('Image deleted successfully');
+            })
+            .catch((error) => console.error('Error deleting image:', error));
     };
 
     // Delete business handlers
@@ -147,9 +196,17 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
     };
 
     const handleConfirmDelete = () => {
-        setBusinesses((prev) => prev.filter((business) => business.id !== selectedBusinessId));
-        setShowDeleteModal(false);
-        setSelectedBusinessId(null);
+        // 서버에 DELETE 요청 보내기
+        api.delete(`/api/businesses/delete/${selectedBusinessId}`)
+            .then(() => {
+                // 삭제된 사업체를 화면에서도 제거
+                setBusinesses((prev) => prev.filter((business) => business.id !== selectedBusinessId));
+                setShowDeleteModal(false);
+                setSelectedBusinessId(null);
+            })
+            .catch((error) => {
+                console.error('Error deleting business:', error);
+            });
     };
 
     const handleCancelDelete = () => {
@@ -175,16 +232,28 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     const handleAddBusiness = () => {
         if (newBusinessName.trim() !== '') {
-            const newBusiness = {
-                id: businesses.length + 1,
-                name: newBusinessName,
-                date: new Date().toISOString().split('T')[0],
-                images: [],
-                memo: ''
-            };
-            setBusinesses((prev) => [...prev, newBusiness]);
-            setShowAddModal(false);
-            setNewBusinessName('');
+            // 서버에 새 사업체 추가 요청
+            api.post('/api/businesses/create', null, {
+                params: { businessName: newBusinessName, userId }
+            })
+            .then((response) => {
+                const newBusiness = {
+                    id: response.data.businessId,
+                    name: response.data.businessName,
+                    date: new Date(response.data.createdDate).toLocaleDateString(),
+                    lastModifiedDate: new Date(response.data.lastModifiedDate),
+                    images: [],
+                    memo: response.data.memo || ''
+                };
+                
+                // 새로운 사업체를 businesses 목록에 추가
+                setBusinesses((prev) => [newBusiness, ...prev]); // 최근 항목을 위로 추가
+                setShowAddModal(false);
+                setNewBusinessName('');
+            })
+            .catch((error) => {
+                console.error('Error creating new business:', error);
+            });
         }
     };
 
@@ -301,14 +370,22 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                                 rows="1"
                                                 style={{ overflow: 'hidden' }}
                                             />
+                                            <button className="save-memo-button" 
+                                                    onClick={() => handleSaveMemo(business.id)}>
+                                                저장
+                                            </button>
                                             <div className="expanded-text">• 사진</div>
                                             <div className="thumbnail-carousel">
                                                 {business.images.map((image, index) => (
                                                     <div key={index} className="thumbnail">
-                                                        <img src={image} alt={`사업 이미지 ${index + 1}`} onClick={() => handleImageClick(business.id, index)} />
+                                                        <img
+                                                            src={image.filePath}
+                                                            alt={`사업 이미지 ${index + 1}`}
+                                                            onClick={() => handleImageClick(business.id, index)}
+                                                        />
                                                         <button
                                                             className="delete-thumbnail"
-                                                            onClick={() => handleDeleteImage(business.id, index)}
+                                                            onClick={() => handleDeleteImage(business.id, image.imageId)}
                                                         >
                                                             <IoCloseCircleOutline />
                                                         </button>
