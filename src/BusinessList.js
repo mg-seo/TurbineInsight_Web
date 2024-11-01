@@ -106,39 +106,56 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
             [businessId]: !prev[businessId],
         }));
         if (!expandedCards[businessId]) fetchImages(businessId);
+        
+        const business = businesses.find((b) => b.id === businessId);
+        setInitialMemo((prev) => ({
+            ...prev,
+            [businessId]: business.memo,
+        }));
     };
 
+    const [initialMemo, setInitialMemo] = useState({}); // 각 사업체의 초기 메모 상태
+    const [isMemoEdited, setIsMemoEdited] = useState({}); // 각 사업체 별로 메모 수정 상태를 추적
 
-    // Memo state and handler
+    // Memo 저장 요청
+    const handleSaveMemo = (businessId) => {
+        if (isMemoEdited[businessId]) { // 수정된 경우만 저장
+            const business = businesses.find((b) => b.id === businessId);
+            api.put(`/api/businesses/updateMemo/${businessId}`, null, {
+                params: { memo: business.memo }
+            })
+            .then((response) => {
+                // 성공적으로 저장된 경우 초기 메모 상태 및 수정 상태 업데이트
+                setBusinesses((prev) =>
+                    prev.map((b) =>
+                        b.id === businessId ? { ...b, memo: response.data.memo } : b
+                    )
+                );
+                setInitialMemo(prev => ({ ...prev, [businessId]: response.data.memo }));
+                setIsMemoEdited(prev => ({ ...prev, [businessId]: false }));
+                console.log('Memo saved successfully');
+            })
+            .catch((error) => {
+                console.error('Error saving memo:', error);
+            });
+        }
+    };
+
+    // Memo 수정 시 호출
     const handleMemoChange = (businessId, e) => {
         const newMemo = e.target.value;
+        const isEdited = newMemo !== initialMemo[businessId]; // 초기 상태와 비교
+
+        setIsMemoEdited(prev => ({ ...prev, [businessId]: isEdited }));
         setBusinesses((prev) =>
             prev.map((business) =>
                 business.id === businessId ? { ...business, memo: newMemo } : business
             )
         );
-        e.target.style.height = "auto"; // 높이를 초기화하여 다시 계산
-        e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞는 높이로 설정
-    };
 
-    // Memo 저장 요청
-    const handleSaveMemo = (businessId) => {
-        const business = businesses.find((b) => b.id === businessId);
-        api.put(`/api/businesses/updateMemo/${businessId}`, null, {
-            params: { memo: business.memo }
-        })
-        .then((response) => {
-            // 성공적으로 저장된 경우 businesses 상태 업데이트
-            setBusinesses((prev) =>
-                prev.map((b) =>
-                    b.id === businessId ? { ...b, memo: response.data.memo } : b
-                )
-            );
-            console.log('Memo saved successfully');
-        })
-        .catch((error) => {
-            console.error('Error saving memo:', error);
-        });
+        // 텍스트 에어리어의 높이를 내용에 맞게 자동 조정
+        e.target.style.height = "auto";
+        e.target.style.height = `${e.target.scrollHeight}px`;
     };
 
     // 이미지 추가하기
@@ -370,10 +387,15 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                                 rows="1"
                                                 style={{ overflow: 'hidden' }}
                                             />
-                                            <button className="save-memo-button" 
-                                                    onClick={() => handleSaveMemo(business.id)}>
-                                                저장
-                                            </button>
+                                            <div className='save-memo-container'>
+                                                <button 
+                                                    className={`save-memo-button ${isMemoEdited[business.id] ? 'hoverable' : ''}`}
+                                                    onClick={() => handleSaveMemo(business.id)}
+                                                    disabled={!isMemoEdited[business.id]} // 수정된 경우만 활성화
+                                                >
+                                                    {isMemoEdited[business.id] ? '저장' : '✔'}
+                                                </button>
+                                            </div>
                                             <div className="expanded-text">• 사진</div>
                                             <div className="thumbnail-carousel">
                                                 {business.images.map((image, index) => (
@@ -441,7 +463,10 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                 {popupImageIndex + 1} / {businesses.find((b) => b.id === popupBusinessId).images.length}
                             </span>
                         </div>
-                        <img src={businesses.find((b) => b.id === popupBusinessId).images[popupImageIndex]} alt="확대 이미지" />
+                        <img
+                            src={businesses.find(b => b.id === popupBusinessId)?.images[popupImageIndex]?.filePath}
+                            alt={`확대 이미지 ${popupImageIndex + 1}`}
+                        />
                     </div>
                 </div>
             )}
