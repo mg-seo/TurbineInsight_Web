@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'; // useEffect 추가
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BusinessList from './BusinessList';
 import MapPage from './MapPage';
 import Login from './Login';
+import PrivateRoute from './PrivateRoute';
 
 const App = () => {
     const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -22,16 +23,22 @@ const App = () => {
                 <Route path="/" element={<Login setUserId={setUserId} />} />
                 <Route 
                     path="/business-list" 
-                    element={<BusinessList setSelectedBusiness={setSelectedBusiness} userId={userId} />} 
+                    element={
+                        <PrivateRoute userId={userId}>
+                            <BusinessList setSelectedBusiness={setSelectedBusiness} userId={userId} />
+                        </PrivateRoute>
+                    } 
                 />
                 <Route 
                     path="/map" 
                     element={
-                        selectedBusiness ? (
-                            <MapPage business={selectedBusiness} />
-                        ) : (
-                            <div>사업을 선택해주세요</div>
-                        )
+                        <PrivateRoute userId={userId}>
+                            {selectedBusiness ? (
+                                <MapPage business={selectedBusiness} />
+                            ) : (
+                                <div>사업을 선택해주세요</div>
+                            )}
+                        </PrivateRoute>
                     } 
                 />
             </Routes>
