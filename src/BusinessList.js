@@ -441,7 +441,10 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                 {popupImageIndex + 1} / {businesses.find((b) => b.id === popupBusinessId).images.length}
                             </span>
                         </div>
-                        <img src={businesses.find((b) => b.id === popupBusinessId).images[popupImageIndex]} alt="확대 이미지" />
+                        <img
+                            src={businesses.find(b => b.id === popupBusinessId)?.images[popupImageIndex]?.filePath}
+                            alt={`확대 이미지 ${popupImageIndex + 1}`}
+                        />
                     </div>
                 </div>
             )}
