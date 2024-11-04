@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
 
-const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, businessId }) => {
+const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, business }) => {
   const [name, setName] = useState('');
   const [model, setModel] = useState('두산중공업 풍력 발전기');
   const [angle, setAngle] = useState(0);
@@ -9,13 +9,13 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
   const [longitude, setLongitude] = useState('');
   const [activeTab, setActiveTab] = useState('model');
 
+
   useEffect(() => {
+    console.log("Received business ID in Modal:", business); // businessId 확인 로그
     if (marker) {
-      // markerId가 없으면 새로운 마커이므로 기본 이름을 설정
       if (!marker.markerId) {
         setName(`마커 ${markersLength + 1}`);
       } else {
-        // 기존 마커인 경우에는 기존 이름을 그대로 사용
         setName(marker.markerName || '');
       }
       setModel(marker.modelName || '두산중공업 풍력 발전기');
@@ -23,26 +23,29 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
       setLatitude(marker.latitude || '');
       setLongitude(marker.longitude || '');
     }
-  }, [marker, markersLength]);
+  }, [marker, markersLength, business]);
 
   if (!show) return null;
   const handleRegisterClick = async () => {
+    // business.id를 businessId로 변환하여 전달
     const markerData = {
-      markerId: marker?.markerId || null, // 여기에서 markerId를 확인
+      markerId: marker?.markerId || null,
       markerName: name,
       modelName: model,
       angle: angle,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
-      businessId: businessId, // 비즈니스 ID 추가
-    };
+      business: {
+        businessId: business.id // business 객체 대신 id를 직접 전달
+      }
+        };
   
-    console.log("Sending marker data:", markerData); // 로그로 데이터 확인
+    console.log("Sending marker data:", markerData); // 전송 데이터 확인
   
     try {
-      const response = await api.post('/api/businesses/map/post/marker/save', markerData);
-      onRegister(response.data);
-      onClose();
+      const response = await api.post('/api/businesses/map/post/marker/add', markerData);
+      onRegister(response.data); // API 응답 데이터 사용
+      onClose(); // 모달 닫기
     } catch (error) {
       console.error("Failed to save marker:", error);
     }
@@ -119,7 +122,11 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
         </div>
         <div style={buttonWrapperStyle}>
           <button style={cancelButtonStyle} onClick={onClose}>취소하기</button>
-          <button style={deleteButtonStyle} onClick={() => onDelete(marker.markerId)}>삭제하기</button>
+              {/* markerId가 있는 경우에만 삭제 버튼 표시 */}
+              {marker?.markerId && (
+                <button style={deleteButtonStyle} onClick={() => onDelete(marker.markerId)}>삭제하기</button>
+              )}
+
           <button style={registerButtonStyle} onClick={handleRegisterClick}>등록하기</button>
         </div>
       </div>
