@@ -64,10 +64,10 @@
   cursor: pointer;
   width: 2.5rem;
   height: 2.5rem;
+  border-radius: 5px;
 }
 .menu-button:hover {
   background-color: #eee;
-  border-radius: 5px;
 }
 
 .menu-options {
@@ -530,6 +530,93 @@
   text-align: center;
 }
 
+/* Area Popup Section */
+.area-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.area-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.file-input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.file-upload-button {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-name-display {
+  margin-left: 10px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.area-list {
+  margin-top: 15px;
+}
+
+.area-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.area-name {
+  flex: 1;
+  font-size: 1em;
+  color: #333;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 5px;
+  font-size: 1em;
+}
+
+/* Footer Section */
+.footer {
+  font-size: 0.9rem;
+}
+
 /* Footer Section */
 .footer {
   margin-top: 20px;
@@ -634,7 +721,7 @@
     font-size: 1.2rem; /* 버튼 아이콘 크기 줄임 */
   }
   
-  .add-modal, .delete-modal {
+  .add-modal, .delete-modal, .upload-modal {
     width: 90%; /* 화면의 90% 너비로 제한 */
     max-width: 400px; /* 최대 너비를 400px로 설정하여 너무 커지지 않도록 */
     margin: 0 5%; /* 양쪽에 5% 여백 */
@@ -759,8 +846,19 @@
     font-size: 14px; /* 폰트 크기 줄이기 */
   }
 
-  /* Footer Section */
-  .footer {
-    font-size: 0.9rem;
+
+  .file-name-input,
+  .region-name-input {
+    width: 100%; /* 부모 요소의 너비에 맞춤 */
+    padding: 8px; /* 패딩 줄임 */
+    font-size: 0.9em; /* 폰트 크기 줄임 */
   }
+
+  .file-upload-button {
+    padding: 8px 10px; /* 버튼 패딩 줄임 */
+    font-size: 1em; /* 버튼 폰트 크기 조정 */
+  }
+
+
+  
 }

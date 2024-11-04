@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BusinessList.css'; // Assuming you have some CSS for styling
-import { MdAdd, MdDelete, MdSearch } from 'react-icons/md';
-import { FaBuilding, FaBars } from 'react-icons/fa';
+import { MdAdd, MdDelete, MdSearch, MdClose, MdEdit, MdCheck } from 'react-icons/md';
+import { FaBars } from 'react-icons/fa';
 import { AiOutlineDown, AiOutlineUp, AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import headerImage from './img/header_proto01.png';
@@ -52,10 +52,38 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
     }, [userId]);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+    const buttonRef = useRef(null);
 
+    // 메뉴 열기/닫기 토글 핸들러
     const handleMenuToggle = () => {
-        setIsMenuOpen(!isMenuOpen);
+        setIsMenuOpen((prev) => !prev);
     };
+
+    // 메뉴 외부 클릭 시 메뉴 닫기
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // 메뉴와 버튼 둘 다 외부일 때만 메뉴를 닫음
+            if (
+                menuRef.current && 
+                buttonRef.current &&
+                !menuRef.current.contains(event.target) &&
+                !buttonRef.current.contains(event.target)
+            ) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener('click', handleClickOutside);
+        } else {
+            document.removeEventListener('click', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     const handleLogout = () => {
         sessionStorage.removeItem('userId');
@@ -189,6 +217,16 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
     const handleAddImage = (businessId, event) => {
         const file = event.target.files[0];
         if (file) {
+
+            const fileExtension = file.name.split('.').pop().toLowerCase(); // 파일 확장자 확인
+            const allowedExtensions = ['jpg', 'jpeg', 'png'];
+    
+            if (!allowedExtensions.includes(fileExtension)) {
+                alert('오직 .jpg, .jpeg, .png 파일만 업로드 가능합니다.');
+                event.target.value = ''; // 잘못된 파일을 선택한 경우 input을 비웁니다
+                return; // 함수 종료
+            }
+
             const formData = new FormData();
             formData.append("file", file);
             formData.append("businessId", businessId);
@@ -342,6 +380,51 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         });
     };
 
+    //규제지역 업로드 모달
+    const [showAreaModal, setShowAreaModal] = useState(false);
+    const [regulatedAreas, setRegulatedAreas] = useState([
+        { area_id: 1, area_name: '규제지역 1' },
+        { area_id: 2, area_name: '규제지역 2' },
+        { area_id: 3, area_name: '규제지역 3' },
+    ]); // 규제지역 목록 상태
+    const [editMode, setEditMode] = useState({});
+    const [areaName, setAreaName] = useState(''); // 수정할 규제지역 이름
+    const [fileName, setFileName] = useState('');
+
+    // 모달 열기 및 닫기
+    const openAreaModal = () => {
+        setIsMenuOpen(false);
+        setShowAreaModal(true)
+    };
+    const closeAreaModal = () => {
+        setShowAreaModal(false);
+        setFileName(''); // 초기화
+        setAreaName(''); // 초기화
+    };
+
+    // 파일 선택 시 규제지역 추가 - 로직은 추후 구현
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file && file.name.endsWith('.geojson')) {
+            setFileName(file.name);
+            // 규제지역 추가 로직은 추후 구현
+        } else {
+            alert('.geojson 파일만 업로드 가능합니다.');
+            setFileName('');
+        }
+    };
+
+    // 규제지역 이름 업데이트 - 로직은 추후 구현
+    const handleUpdateArea = (id, newAreaName) => {
+        // 이름 업데이트 로직은 추후 구현
+        setEditMode((prev) => ({ ...prev, [id]: false }));
+    };
+
+    // 규제지역 삭제 - 로직은 추후 구현
+    const handleDeleteArea = (id) => {
+        // 삭제 로직은 추후 구현
+    };
+
     return (
         <div className="business-list-container">
             {/* Header section */}
@@ -364,12 +447,12 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                         <div>Loading user information...</div>
                     )}
                     </div>
-                    <button className="menu-button" onClick={handleMenuToggle}>
+                    <button className="menu-button" onClick={handleMenuToggle} ref={buttonRef}>
                         <FaBars size={20} />
                     </button>
                     {isMenuOpen && (
-                        <div className="menu-options">
-                            <button className="regulated-area-upload-button">
+                        <div className="menu-options" ref={menuRef}>
+                            <button className="regulated-area-upload-button" onClick={openAreaModal}>
                                 규제지역 파일 업로드
                             </button>
                             <button className="logout-button" onClick={handleLogout}>
@@ -474,7 +557,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                                         <input
                                                             id={`file-input-${business.id}`}
                                                             type="file"
-                                                            accept="image/*"
+                                                            accept=".jpg, .jpeg, .png"
                                                             onChange={(e) => handleAddImage(business.id, e)}
                                                             style={{ display: 'none' }}
                                                         />
@@ -556,6 +639,74 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                         <div className="modal-buttons">
                             <button className="confirm-button" onClick={handleAddBusiness}>추가하기</button>
                             <button className="cancel-button" onClick={handleCancelAdd}>취소</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showAreaModal && (
+                <div className="area-modal-overlay">
+                    <div className="area-modal">
+                        <div className="modal-header">
+                            <h2>규제지역 목록</h2>
+                            <button className="close-button" onClick={closeAreaModal}>X</button>
+                        </div>
+
+                        {/* 규제지역 추가 */}
+                        <div className="file-input-group">
+                            <input
+                                type="text"
+                                className="file-name-display"
+                                value={fileName}
+                                placeholder=".geojson 파일만 등록 가능합니다."
+                                readOnly
+                            />
+                            <label className="file-upload-button">
+                                추가
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    style={{ display: 'none' }}
+                                    accept=".geojson"
+                                />
+                            </label>
+                        </div>
+
+                        {/* 규제지역 목록 */}
+                        <div className="area-list">
+                            {regulatedAreas.map((area) => (
+                                <div key={area.area_id} className="area-item">
+                                    {editMode[area.area_id] ? (
+                                        <input
+                                            type="text"
+                                            value={areaName}
+                                            onChange={(e) => setAreaName(e.target.value)}
+                                            maxLength={30}
+                                            className="edit-input"
+                                        />
+                                    ) : (
+                                        <span className="area-name">{area.area_name}</span>
+                                    )}
+                                    {editMode[area.area_id] ? (
+                                        <MdCheck
+                                            className="icon-button"
+                                            onClick={() => handleUpdateArea(area.area_id)}
+                                        />
+                                    ) : (
+                                        <MdEdit
+                                            className="icon-button"
+                                            onClick={() => {
+                                                setAreaName(area.area_name);
+                                                setEditMode((prev) => ({ ...prev, [area.area_id]: true }));
+                                            }}
+                                        />
+                                    )}
+                                    <MdClose
+                                        className="icon-button"
+                                        onClick={() => handleDeleteArea(area.area_id)}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
