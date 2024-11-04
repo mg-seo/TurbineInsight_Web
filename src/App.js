@@ -34,7 +34,7 @@ const App = () => {
                     element={
                         <PrivateRoute userId={userId}>
                             {selectedBusiness ? (
-                                <MapPage business={selectedBusiness} />
+                                <MapPage business={selectedBusiness} userId={userId} />
                             ) : (
                                 <div>사업을 선택해주세요</div>
                             )}
