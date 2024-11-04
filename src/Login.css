@@ -51,3 +51,42 @@
   margin-top: 10px;
   font-size: 0.9em;
 }
+
+
+@media (max-width: 768px) {
+  .login-container-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 85vh;
+      padding: 0 10px; /* 화면 양쪽에 10px 여백 추가 */
+      box-sizing: border-box; /* padding을 포함한 너비 계산 */
+  }
+
+  .login-container {
+      width: 100%; /* wrapper에 맞게 너비 설정 */
+      max-width: 400px; /* 최대 너비 설정 */
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .login-title {
+      font-size: 1.5em;
+  }
+
+  .login-input {
+      padding: 8px;
+      font-size: 0.9em;
+  }
+
+  .login-button {
+      padding: 8px;
+      font-size: 0.9em;
+  }
+
+  .error-message {
+      font-size: 0.8em;
+  }
+}

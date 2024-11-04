@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BusinessList.css'; // Assuming you have some CSS for styling
 import { MdAdd, MdDelete, MdSearch } from 'react-icons/md';
+import { FaBuilding, FaBars } from 'react-icons/fa';
 import { AiOutlineDown, AiOutlineUp, AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import headerImage from './img/header_proto01.png';
@@ -11,28 +12,23 @@ import banner03 from './img/banner03.png';
 import api from './api';
 
 const BusinessList = ({ setSelectedBusiness, userId }) => {
-    // Slider state and functionality
-    const [sliderIndex, setSliderIndex] = useState(0);
 
-    const sliderImages = [
-        banner01,
-        banner02,
-        banner03
-    ];
-
-    // 자동 슬라이드 기능
-    useEffect(() => {
-        const autoSlide = setInterval(() => {
-        setSliderIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
-        }, 3000); // 자동으로 3초마다 다음 슬라이드
-
-        return () => clearInterval(autoSlide);
-    }, []);
-
-    // 서버에서 사업체 목록 가져오기
+    // 서버에서 유저, 사업체 목록 가져오기
+    const [userInfo, setUserInfo] = useState(null);
     const [businesses, setBusinesses] = useState([]);
+
     useEffect(() => {
         if (userId) {
+            //사용자 정보 조회
+            api.get(`/api/businesses/${userId}`)
+                .then((response) => {
+                    setUserInfo(response.data);
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error);
+                });
+            
+            //사업 정보 조회
             api.get(`/api/businesses/list/${userId}`)
                 .then((response) => {
                     // 서버에서 가져온 데이터를 정렬하여 상태에 저장
@@ -54,6 +50,37 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                 });
         }
     }, [userId]);
+
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleMenuToggle = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleLogout = () => {
+        sessionStorage.removeItem('userId');
+        console.log('Logging out...');
+        navigate('/');
+    };
+    
+    // Slider state and functionality
+    const [sliderIndex, setSliderIndex] = useState(0);
+    
+    const sliderImages = [
+        banner01,
+        banner02,
+        banner03
+    ];
+    
+    // 자동 슬라이드 기능
+    useEffect(() => {
+        const autoSlide = setInterval(() => {
+            setSliderIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
+        }, 3000); // 자동으로 3초마다 다음 슬라이드
+        
+        return () => clearInterval(autoSlide);
+    }, []);
+    
 
     // 수동 슬라이드 핸들러
     const handleNextSlide = () => {
@@ -324,6 +351,34 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
             <div className="business-list">
                 
+                {/* menu section */}
+                <div className='menu'>
+                    <button className="invisible-button" aria-hidden="true" disabled></button>
+                    <div className="user-info">
+                    {userInfo ? (
+                        <div className='user-info-text'>
+                            <span className="user-name">🏢 {userInfo.userName}</span>
+                            <span className="welcome-message">({userInfo.userId})</span>
+                        </div>
+                    ) : (
+                        <div>Loading user information...</div>
+                    )}
+                    </div>
+                    <button className="menu-button" onClick={handleMenuToggle}>
+                        <FaBars size={20} />
+                    </button>
+                    {isMenuOpen && (
+                        <div className="menu-options">
+                            <button className="regulated-area-upload-button">
+                                규제지역 파일 업로드
+                            </button>
+                            <button className="logout-button" onClick={handleLogout}>
+                                로그아웃
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 {/* Slider banner section */}
                 <div className="slider-banner">
                     <button className="prev-slide" onClick={handlePrevSlide}>
@@ -396,7 +451,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                                     {isMemoEdited[business.id] ? '저장' : '✔'}
                                                 </button>
                                             </div>
-                                            <div className="expanded-text">• 사진</div>
+                                            <div className="expanded-text"><span>• 사진</span> <span className='image-limit-text'>(장당 5MB 제한)</span></div>
                                             <div className="thumbnail-carousel">
                                                 {business.images.map((image, index) => (
                                                     <div key={index} className="thumbnail">
