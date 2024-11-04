@@ -5,8 +5,13 @@ import MapPage from './MapPage';
 import Login from './Login';
 import PrivateRoute from './PrivateRoute';
 
+
 const App = () => {
-    const [selectedBusiness, setSelectedBusiness] = useState(null);
+    const [selectedBusiness, setSelectedBusiness] = useState(() => {
+        const savedBusiness = sessionStorage.getItem('selectedBusiness');
+        return savedBusiness ? JSON.parse(savedBusiness) : null;
+    });
+    
     const [userId, setUserId] = useState(() => sessionStorage.getItem('userId') || null);
 
     useEffect(() => {
@@ -16,6 +21,14 @@ const App = () => {
             sessionStorage.removeItem('userId');
         }
     }, [userId]);
+
+    useEffect(() => {
+        if (selectedBusiness) {
+            sessionStorage.setItem('selectedBusiness', JSON.stringify(selectedBusiness));
+        } else {
+            sessionStorage.removeItem('selectedBusiness');
+        }
+    }, [selectedBusiness]);
 
     return (
         <Router>

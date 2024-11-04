@@ -83,6 +83,7 @@
   height: 100%;
   z-index: 2;
   transition: transform 0.5s ease;
+  box-sizing: border-box;
 }
 
 .marker-item {

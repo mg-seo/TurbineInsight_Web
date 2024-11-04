@@ -79,51 +79,53 @@ const MapPage = ({ business, userId }) => {
     console.error('Failed to update title:', error);
   }
 };
-  useEffect(() => {
-    const fetchMarkers = async () => {
-      if (!business?.id) return;
-      try {
-        const response = await api.get(`/api/businesses/map/get/marker/${business.id}`);
-        
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          // 가장 오래된 마커 찾기
+useEffect(() => {
+  const fetchMarkers = async () => {
+    if (!business?.id || !mapInstance.current) return;
+    try {
+      const response = await api.get(`/api/businesses/map/get/marker/${business.id}`);
+      
+      if (Array.isArray(response.data) && response.data.length > 0) {
         const oldestMarker = response.data.reduce((oldest, marker) => {
           return new Date(marker.createdAt) < new Date(oldest.createdAt) ? marker : oldest;
         }, response.data[0]);
-          console.log("Fetched markers data:", response.data);
 
-          // 지도의 중심을 가장 오래된 마커의 위치로 설정
+        console.log("Fetched markers data:", response.data);
+
+        // 지도의 중심을 가장 오래된 마커의 위치로 설정
         mapInstance.current.setCenter({
           lat: oldestMarker.latitude,
           lng: oldestMarker.longitude,
         });
 
-
-          const newMarkers = response.data.map((markerData) => {
-            const markerInstance = new window.google.maps.Marker({
-              position: { lat: markerData.latitude, lng: markerData.longitude },
-              map: mapInstance.current,
-              title: markerData.markerName,
-              animation: window.google.maps.Animation.DROP,
-            });
-
-            // 마커 클릭 시 수정 모달창 열기
-            markerInstance.addListener('click', () => handleEditMarker(markerData));
-  
-            return { ...markerData, markerInstance };
+        const newMarkers = response.data.map((markerData) => {
+          const markerInstance = new window.google.maps.Marker({
+            position: { lat: markerData.latitude, lng: markerData.longitude },
+            map: mapInstance.current,
+            title: markerData.markerName,
+            animation: window.google.maps.Animation.DROP,
           });
-  
-          setMarkers(newMarkers);
-        } else {
-          console.error("Unexpected response format:", response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching marker data:', error.message);
+
+          markerInstance.addListener('click', () => handleEditMarker(markerData));
+
+          return { ...markerData, markerInstance };
+        });
+
+        setMarkers(newMarkers);
+      } else {
+        console.error("Unexpected response format:", response.data);
       }
-    };
-  
+    } catch (error) {
+      console.error('Error fetching marker data:', error.message);
+    }
+  };
+
+  // Map이 로드되고 나서 fetchMarkers 호출
+  if (isMapLoaded && business?.id) {
     fetchMarkers();
-  }, [business?.id]);
+  }
+}, [isMapLoaded, business?.id]);
+
   // 상태 외에 플래그 변수를 추가하여 클릭 이벤트 차단 제어
 // 전역 플래그 변수 추가
 let isPlacingMarker = false;
@@ -250,40 +252,58 @@ const handleMapClick = (location) => {
   
 
 
-  const handleRegisterMarker = async (updatedMarker) => {
+const handleRegisterMarker = async (updatedMarker) => {
     try {
-      const markerData = {
-        ...updatedMarker,
-        businessId: business.id, // business 객체에서 ID를 가져옴
-      };
-  
-      const response = await api.post('/api/businesses/map/post/marker/add', markerData);
-      const savedMarker = response.data; // 서버로부터 반환된 마커 정보
-  
-      // 새로 등록된 마커를 지도에 표시
-      const markerInstance = new window.google.maps.Marker({
-        position: { lat: savedMarker.latitude, lng: savedMarker.longitude },
-        map: mapInstance.current,
-        title: savedMarker.markerName,
-        animation: window.google.maps.Animation.DROP,
-      });
+        const markerData = {
+            ...updatedMarker,
+            businessId: business.id, // business 객체에서 ID를 가져옴
+        };
 
-      // 클릭 이벤트 리스너 추가
-      markerInstance.addListener('click', () => handleEditMarker(savedMarker));
+        const response = await api.post('/api/businesses/map/post/marker/add', markerData);
+        const savedMarker = response.data; // 서버로부터 반환된 마커 정보
 
-      // markers 리스트에 새 마커 추가
-      setMarkers((prevMarkers) => [
-        ...prevMarkers,
-        { ...savedMarker, markerInstance },
-      ]);
-  
-      setPendingMarker(null);
-      setIsModalOpen(false);
+        setMarkers((prevMarkers) => {
+            const existingMarkerIndex = prevMarkers.findIndex(marker => marker.markerId === savedMarker.markerId);
+            
+            if (existingMarkerIndex !== -1) {
+                // 기존 마커 수정
+                const updatedMarkers = [...prevMarkers];
+                const existingMarker = updatedMarkers[existingMarkerIndex];
+
+                // 지도에서 마커 이름 업데이트
+                if (existingMarker.markerInstance) {
+                    existingMarker.markerInstance.setTitle(savedMarker.markerName);
+                }
+
+                // 상태 배열에서도 마커 정보 업데이트
+                updatedMarkers[existingMarkerIndex] = {
+                    ...existingMarker,
+                    ...savedMarker,
+                };
+
+                return updatedMarkers;
+            } else {
+                // 새로운 마커 추가
+                const markerInstance = new window.google.maps.Marker({
+                    position: { lat: savedMarker.latitude, lng: savedMarker.longitude },
+                    map: mapInstance.current,
+                    title: savedMarker.markerName,
+                    animation: window.google.maps.Animation.DROP,
+                });
+                
+                // 마커 클릭 이벤트 추가
+                markerInstance.addListener('click', () => handleEditMarker(savedMarker));
+
+                return [...prevMarkers, { ...savedMarker, markerInstance }];
+            }
+        });
+
+        setPendingMarker(null);
+        setIsModalOpen(false);
     } catch (error) {
-      console.error("Failed to save marker:", error);
+        console.error("Failed to save marker:", error);
     }
-  };
-  
+};
 
 // 마커 삭제 함수
 const handleDeleteMarker = async (markerId) => {
@@ -433,6 +453,7 @@ const handleCloseModal = () => {
 
 
   return (
+    
     <div className="main-container">
       <LoadScriptNext
         googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
@@ -487,7 +508,7 @@ const handleCloseModal = () => {
                     <strong>{marker.markerName}</strong>
                   </div>
                   <div className="marker-coordinates">
-                    좌표: {marker.latitude.toFixed(6)}, {marker.longitude.toFixed(6)}
+                     {marker.latitude.toFixed(6)}, {marker.longitude.toFixed(6)}
                   </div>
                 </div>
                 <button className="edit-button" onClick={() => handleEditMarker(marker)}>
