@@ -28,6 +28,77 @@
   margin: 0 auto;
 }
 
+.menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+.invisible-button {
+  visibility: hidden; /* 버튼을 보이지 않게 */
+  width: 2.5rem; /* 오른쪽 메뉴 버튼과 동일한 크기 */
+  height: 2.5rem;
+  background: none;
+  border: none;
+}
+.user-info-text {
+  display: flex;
+  flex-direction: column; /* 이름과 환영 문구를 세로로 정렬 */
+  align-items: center; /* 가운데 정렬 */
+}
+.user-info {
+  flex: 1;
+  text-align: center; /* 중앙 정렬 */
+}
+.user-info .user-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+.user-info .welcome-message {
+  font-size: 0.9rem;
+  color: #555;
+}
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 5px;
+}
+.menu-button:hover {
+  background-color: #eee;
+}
+
+.menu-options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.regulated-area-upload-button,
+.logout-button {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.regulated-area-upload-button:hover,
+.logout-button:hover {
+  background-color: #eee;
+}
+
 /* Slider Banner Section */
 .slider-banner {
   position: relative;
@@ -207,6 +278,9 @@
 .expanded-text {
   font-size: smaller;
   color: rgb(80, 80, 80);
+}
+.image-limit-text {
+  font-size: smaller;
 }
 
 /* Memo Textarea */
@@ -456,9 +530,335 @@
   text-align: center;
 }
 
+/* Area Popup Section */
+.area-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.area-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.file-input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.file-upload-button {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-name-display {
+  margin-left: 10px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.area-list {
+  margin-top: 15px;
+}
+
+.area-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.area-name {
+  flex: 1;
+  font-size: 1em;
+  color: #333;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 5px;
+  font-size: 1em;
+}
+
+/* Footer Section */
+.footer {
+  font-size: 0.9rem;
+}
+
 /* Footer Section */
 .footer {
   margin-top: 20px;
   text-align: center;
   color: #ccc;
+}
+
+
+/* 화면이 768px 이하로 작아질 때 적용될 새로운 CSS */
+/* 기본 CSS는 그대로 유지 */
+
+/* 768px 이하 화면에서 적용될 새로운 CSS */
+/* 768px 이하 화면에서 적용될 새로운 CSS */
+@media (max-width: 768px) {
+  .business-list-container {
+    padding: 0; /* 여백 제거 */
+    width: 100vw; /* 화면 너비에 딱 맞추기 */
+    overflow-x: hidden; /* 수평 스크롤 제거 */
+  }
+
+  .business-list {
+    width: 90vw; /* 전체 화면 너비의 90% */
+    padding: 4vw; /* 상대적 패딩 */
+    min-height: 80vh;
+    border-radius: 1rem;
+    box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.1);
+    border-top: 0.3rem solid rgb(0, 0, 191);
+    border-bottom: 0.3rem solid rgb(184, 126, 0);
+    margin: 0 auto;
+  }
+
+  /* Header Section */
+  .header {
+    width: 100%; /* 화면 너비에 꽉 차게 설정 */
+    height: 7vh;
+    padding: 0; /* 여백 제거 */
+    margin: 0; /* 여백 제거 */
+  }
+
+  .header img {
+    width: 100%; /* 헤더 이미지가 부모 컨테이너를 꽉 채우도록 설정 */
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-info .user-name {
+      font-size: 0.9rem; /* 폰트 크기 줄임 */
+  }
+
+  .user-info .welcome-message {
+      font-size: 0.7rem; /* 폰트 크기 줄임 */
+  }
+
+  /* Slider Banner Section */
+  .slider-banner {
+    width: 100%;
+    height: 23vw; /* 화면 너비의 25%로 설정해 PC 비율에 맞춤 */
+    margin: 3vh 0;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .slider-banner-wrapper {
+    width: 100%;
+  }
+
+  .slider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Slider Controls */
+  .prev-slide,
+  .next-slide {
+    width: 2rem; /* 버튼 너비 축소 */
+    height: 2rem; /* 버튼 높이 축소 */
+    font-size: 1.2rem; /* 아이콘 크기 축소 */
+  }
+
+  /* Slider Indicator */
+  .slider-indicator {
+    font-size: 0.8rem;
+    padding: 0.5vw 1vw;
+  }
+
+  /* Search Bar Section */
+  .search-bar {
+    margin: 1vh 0; /* 세로 마진 줄임 */
+  }
+
+  .search-input > input {
+    padding-left: 2rem; /* 아이콘 공간 조정 */
+    font-size: 0.9rem; /* 폰트 크기 줄임 */
+  }
+
+  
+  /* Add Button in Search Bar */
+  .action-buttons .add-button {
+    width: 2.5rem; /* 버튼 너비 줄임 */
+    height: 2.5rem; /* 버튼 높이 줄임 */
+    font-size: 1.2rem; /* 버튼 아이콘 크기 줄임 */
+  }
+  
+  .add-modal, .delete-modal, .upload-modal {
+    width: 90%; /* 화면의 90% 너비로 제한 */
+    max-width: 400px; /* 최대 너비를 400px로 설정하여 너무 커지지 않도록 */
+    margin: 0 5%; /* 양쪽에 5% 여백 */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+
+
+  /* Business Cards Section */
+  .business-card {
+    padding: 3vw;
+    margin-bottom: 4vw;
+  }
+
+  .business-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap; /* 한 줄에 고정 */
+  }
+
+  .business-name {
+    font-size: 0.9rem; /* 폰트 크기 줄임 */
+    flex: 1; /* 남은 공간을 차지하도록 설정 */
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 텍스트가 길 경우 ...으로 표시 */
+  }
+
+  .business-date {
+    font-size: 0.6rem;
+    margin-left: 1vw;
+    white-space: nowrap;
+  }
+
+  .expand-button {
+    font-size: 0.9rem;
+    margin-left: 1vw;
+    flex-shrink: 0; /* 버튼 크기 고정 */
+  }
+
+  /* Expanded Business Details */
+  .business-details-expanded {
+    margin-top: 2vh;
+  }
+
+  .expanded-text {
+    font-size: 0.8rem;
+  }
+
+  /* Memo Textarea */
+  .memo-textarea {
+    font-size: 0.7rem;
+    padding: 1vw;
+    margin: 2vh 0;
+  }
+
+  /* Thumbnail Carousel Section */
+  .thumbnail-carousel {
+    gap: 2vw;
+    padding-bottom: 2vh;
+    margin-top: 2vh;
+  }
+
+  .thumbnail {
+    width: 18vw;
+    height: 18vw;
+  }
+
+  /* Delete Thumbnail Button */
+  .delete-thumbnail {
+    top: 0.5vw;
+    right: 0.5vw;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Add Thumbnail Button */
+  .add-thumbnail {
+    width: 18vw;
+    height: 18vw;
+  }
+
+  .modal-buttons > .delete-button {
+    padding: 5px 20px;
+  }
+
+  /* Delete Button Section */
+  .delete-button-container {
+    margin-top: 2vh;
+    padding: 0;
+  }
+  .delete-button {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Image Popup Section */
+  .image-popup-content {
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+  .prev-image, .next-image {
+    width: 35px; /* 버튼 너비 조정 */
+    height: 35px; /* 버튼 높이 조정 */
+    font-size: 24px; /* 아이콘 크기 조정 */
+  }
+  .prev-image {
+    left: 10%; /* 왼쪽 버튼을 더 왼쪽으로 이동 */
+  }
+  .next-image {
+      right: 10%; /* 오른쪽 버튼을 더 오른쪽으로 이동 */
+  }
+  .image-popup-content img {
+    max-width: 100%;
+    max-height: 80vh;
+  }
+  .image-counter {
+    top: 15px; /* 위치 조정 */
+    padding: 5px 10px; /* 패딩 줄이기 */
+    font-size: 14px; /* 폰트 크기 줄이기 */
+  }
+
+
+  .file-name-input,
+  .region-name-input {
+    width: 100%; /* 부모 요소의 너비에 맞춤 */
+    padding: 8px; /* 패딩 줄임 */
+    font-size: 0.9em; /* 폰트 크기 줄임 */
+  }
+
+  .file-upload-button {
+    padding: 8px 10px; /* 버튼 패딩 줄임 */
+    font-size: 1em; /* 버튼 폰트 크기 조정 */
+  }
+
+
+  
 }

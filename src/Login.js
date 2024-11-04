@@ -28,17 +28,19 @@ const Login = ({ setUserId }) => {
     };
 
     return (
-        <div className="login-container">
-            <h2 className="login-title">Turbine Insight</h2>
-            <input
-                className="login-input"
-                type="text"
-                value={inputUserId}
-                onChange={(e) => setInputUserId(e.target.value)}
-                placeholder="10자리 사용자 ID를 입력하세요"
-            />
-            <button className="login-button" onClick={handleLogin}>로그인</button>
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
+        <div className="login-container-wrapper">
+            <div className="login-container">
+                <h2 className="login-title">Turbine Insight</h2>
+                <input
+                    className="login-input"
+                    type="text"
+                    value={inputUserId}
+                    onChange={(e) => setInputUserId(e.target.value)}
+                    placeholder="10자리 사용자 ID를 입력하세요"
+                />
+                <button className="login-button" onClick={handleLogin}>로그인</button>
+                {errorMessage && <p className="error-message">{errorMessage}</p>}
+            </div>
         </div>
     );
 };
