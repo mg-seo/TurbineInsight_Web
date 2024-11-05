@@ -382,11 +382,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     //규제지역 업로드 모달
     const [showAreaModal, setShowAreaModal] = useState(false);
-    const [regulatedAreas, setRegulatedAreas] = useState([
-        { area_id: 1, area_name: '규제지역 1' },
-        { area_id: 2, area_name: '규제지역 2' },
-        { area_id: 3, area_name: '규제지역 3' },
-    ]); // 규제지역 목록 상태
+    const [regulatedAreas, setRegulatedAreas] = useState([]); // 규제지역 목록 상태
     const [editMode, setEditMode] = useState({});
     const [areaName, setAreaName] = useState(''); // 수정할 규제지역 이름
     const [fileName, setFileName] = useState('');
@@ -402,27 +398,87 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         setAreaName(''); // 초기화
     };
 
-    // 파일 선택 시 규제지역 추가 - 로직은 추후 구현
+    // 규제지역 목록 불러오기
+    useEffect(() => {
+        if (userId) {
+            api.get(`/api/businesses/regulatedArea/list/${userId}`)
+                .then((response) => {
+                    setRegulatedAreas(response.data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching regulated areas:", error);
+                });
+        }
+    }, [userId]);
+
     const handleFileChange = (event) => {
         const file = event.target.files[0];
+        
         if (file && file.name.endsWith('.geojson')) {
             setFileName(file.name);
-            // 규제지역 추가 로직은 추후 구현
+            
+            // 기본 규제지역 이름 생성 ("규제지역" + (목록 개수 + 1))
+            const defaultAreaName = `규제지역${regulatedAreas.length + 1}`;
+    
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("areaName", defaultAreaName); // 기본 규제지역 이름
+            formData.append("userId", userId); // userId가 화면에 전달된다고 가정
+    
+            // 규제지역 추가 API 호출
+            api.post("/api/businesses/regulatedArea/add", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((response) => {
+                alert("규제지역이 성공적으로 추가되었습니다.");
+                // 규제지역 목록 업데이트
+                setRegulatedAreas(prev => [...prev, response.data]);
+                setFileName(''); // 파일명 초기화
+            })
+            .catch((error) => {
+                console.error("Error adding regulated area:", error);
+                alert("규제지역 추가에 실패했습니다.");
+                setFileName(''); // 파일명 초기화
+            });
         } else {
             alert('.geojson 파일만 업로드 가능합니다.');
             setFileName('');
         }
     };
 
-    // 규제지역 이름 업데이트 - 로직은 추후 구현
-    const handleUpdateArea = (id, newAreaName) => {
-        // 이름 업데이트 로직은 추후 구현
-        setEditMode((prev) => ({ ...prev, [id]: false }));
+    // 규제지역 이름 업데이트
+    const handleUpdateArea = (id) => {
+        api.put(`/api/businesses/regulatedArea/update/${id}`, null, {
+            params: { areaName },
+        })
+        .then((response) => {
+            // 성공적으로 업데이트된 경우, 목록의 해당 항목 이름을 업데이트
+            setRegulatedAreas((prevAreas) =>
+                prevAreas.map((area) =>
+                    area.areaId === id ? { ...area, areaName: response.data.areaName } : area
+                )
+            );
+            setEditMode((prev) => ({ ...prev, [id]: false }));
+            setAreaName(''); // 이름 입력 초기화
+        })
+        .catch((error) => {
+            console.error("Error updating area name:", error);
+        });
     };
 
     // 규제지역 삭제 - 로직은 추후 구현
     const handleDeleteArea = (id) => {
-        // 삭제 로직은 추후 구현
+        api.delete(`/api/businesses/regulatedArea/delete/${id}`)
+            .then(() => {
+                // 성공적으로 삭제된 경우, 규제지역 목록에서 해당 항목 제거
+                setRegulatedAreas((prevAreas) => prevAreas.filter((area) => area.areaId !== id));
+                console.log("Regulated area deleted successfully");
+            })
+            .catch((error) => {
+                console.error("Error deleting regulated area:", error);
+            });
     };
 
     return (
@@ -675,8 +731,8 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                         {/* 규제지역 목록 */}
                         <div className="area-list">
                             {regulatedAreas.map((area) => (
-                                <div key={area.area_id} className="area-item">
-                                    {editMode[area.area_id] ? (
+                                <div key={area.areaId} className="area-item">
+                                    {editMode[area.areaId] ? (
                                         <input
                                             type="text"
                                             value={areaName}
@@ -685,25 +741,25 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                                             className="edit-input"
                                         />
                                     ) : (
-                                        <span className="area-name">{area.area_name}</span>
+                                        <span className="area-name">{area.areaName}</span>
                                     )}
-                                    {editMode[area.area_id] ? (
+                                    {editMode[area.areaId] ? (
                                         <MdCheck
                                             className="icon-button"
-                                            onClick={() => handleUpdateArea(area.area_id)}
+                                            onClick={() => handleUpdateArea(area.areaId)}
                                         />
                                     ) : (
                                         <MdEdit
                                             className="icon-button"
                                             onClick={() => {
-                                                setAreaName(area.area_name);
-                                                setEditMode((prev) => ({ ...prev, [area.area_id]: true }));
+                                                setAreaName(area.areaName);
+                                                setEditMode((prev) => ({ ...prev, [area.areaId]: true }));
                                             }}
                                         />
                                     )}
                                     <MdClose
                                         className="icon-button"
-                                        onClick={() => handleDeleteArea(area.area_id)}
+                                        onClick={() => handleDeleteArea(area.areaId)}
                                     />
                                 </div>
                             ))}
