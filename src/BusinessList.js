@@ -10,8 +10,12 @@ import banner01 from './img/banner01.png';
 import banner02 from './img/banner02.png';
 import banner03 from './img/banner03.png';
 import api from './api';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const BusinessList = ({ setSelectedBusiness, userId }) => {
+
+    const maxSize = 5 * 1024 * 1024; //파일 업로드 5MB 제한
 
     // 서버에서 유저, 사업체 목록 가져오기
     const [userInfo, setUserInfo] = useState(null);
@@ -87,7 +91,6 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     const handleLogout = () => {
         sessionStorage.removeItem('userId');
-        console.log('Logging out...');
         navigate('/');
     };
     
@@ -188,10 +191,11 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                 );
                 setInitialMemo(prev => ({ ...prev, [businessId]: response.data.memo }));
                 setIsMemoEdited(prev => ({ ...prev, [businessId]: false }));
-                console.log('Memo saved successfully');
+                toast.success('저장되었습니다.');
             })
             .catch((error) => {
                 console.error('Error saving memo:', error);
+                toast.error('저장에 실패하였습니다.');
             });
         }
     };
@@ -213,16 +217,23 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         e.target.style.height = `${e.target.scrollHeight}px`;
     };
 
+
     // 이미지 추가하기
     const handleAddImage = (businessId, event) => {
         const file = event.target.files[0];
         if (file) {
 
+            if (file.size > maxSize) {
+                toast.warn("파일 크기는 5MB를 초과할 수 없습니다.");
+                setFileName(''); // 파일 초기화
+                return;
+            }
+
             const fileExtension = file.name.split('.').pop().toLowerCase(); // 파일 확장자 확인
             const allowedExtensions = ['jpg', 'jpeg', 'png'];
     
             if (!allowedExtensions.includes(fileExtension)) {
-                alert('오직 .jpg, .jpeg, .png 파일만 업로드 가능합니다.');
+                toast.warn('오직 .jpg, .jpeg, .png 파일만 업로드 가능합니다.');
                 event.target.value = ''; // 잘못된 파일을 선택한 경우 input을 비웁니다
                 return; // 함수 종료
             }
@@ -242,10 +253,11 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                             : business
                     )
                 );
-                console.log('Image added successfully');
+                toast.success('성공적으로 추가되었습니다.');
             })
             .catch((error) => {
                 console.error("Error adding image:", error);
+                toast.error('추가에 실패했습니다.');
             });
         }
     };
@@ -261,9 +273,12 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                             : business
                     )
                 );
-                console.log('Image deleted successfully');
+                toast.success('성공적으로 삭제되었습니다.');
             })
-            .catch((error) => console.error('Error deleting image:', error));
+            .catch((error) => {
+                console.error("Error deleting image:", error);
+                toast.error('삭제에 실패했습니다.');
+            });
     };
 
     // Delete business handlers
@@ -285,9 +300,11 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                 setBusinesses((prev) => prev.filter((business) => business.id !== selectedBusinessId));
                 setShowDeleteModal(false);
                 setSelectedBusinessId(null);
+                toast.success('성공적으로 삭제되었습니다.');
             })
             .catch((error) => {
                 console.error('Error deleting business:', error);
+                toast.error('삭제에 실패했습니다.');
             });
     };
 
@@ -332,9 +349,11 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                 setBusinesses((prev) => [newBusiness, ...prev]); // 최근 항목을 위로 추가
                 setShowAddModal(false);
                 setNewBusinessName('');
+                toast.success('성공적으로 추가되었습니다.');
             })
             .catch((error) => {
                 console.error('Error creating new business:', error);
+                toast.error('추가에 실패했습니다.');
             });
         }
     };
@@ -382,11 +401,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     //규제지역 업로드 모달
     const [showAreaModal, setShowAreaModal] = useState(false);
-    const [regulatedAreas, setRegulatedAreas] = useState([
-        { area_id: 1, area_name: '규제지역 1' },
-        { area_id: 2, area_name: '규제지역 2' },
-        { area_id: 3, area_name: '규제지역 3' },
-    ]); // 규제지역 목록 상태
+    const [regulatedAreas, setRegulatedAreas] = useState([]); // 규제지역 목록 상태
     const [editMode, setEditMode] = useState({});
     const [areaName, setAreaName] = useState(''); // 수정할 규제지역 이름
     const [fileName, setFileName] = useState('');
@@ -402,31 +417,110 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
         setAreaName(''); // 초기화
     };
 
-    // 파일 선택 시 규제지역 추가 - 로직은 추후 구현
+    // 규제지역 목록 불러오기
+    useEffect(() => {
+        if (userId) {
+            api.get(`/api/businesses/regulatedArea/list/${userId}`)
+                .then((response) => {
+                    setRegulatedAreas(response.data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching regulated areas:", error);
+                });
+        }
+    }, [userId]);
+
     const handleFileChange = (event) => {
         const file = event.target.files[0];
+        
         if (file && file.name.endsWith('.geojson')) {
+
+            if (file.size > maxSize) {
+                toast.warn("파일 크기는 5MB를 초과할 수 없습니다.");
+                setFileName(''); // 파일 초기화
+                return;
+            }
+
             setFileName(file.name);
-            // 규제지역 추가 로직은 추후 구현
+            
+            // 기본 규제지역 이름 생성 ("규제지역" + (목록 개수 + 1))
+            const defaultAreaName = `규제지역${regulatedAreas.length + 1}`;
+    
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("areaName", defaultAreaName); // 기본 규제지역 이름
+            formData.append("userId", userId); // userId가 화면에 전달된다고 가정
+    
+            // 규제지역 추가 API 호출
+            api.post("/api/businesses/regulatedArea/add", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((response) => {
+                toast.success("성공적으로 추가되었습니다.");
+                // 규제지역 목록 업데이트
+                setRegulatedAreas(prev => [...prev, response.data]);
+                setFileName(''); // 파일명 초기화
+            })
+            .catch((error) => {
+                console.error("Error adding regulated area:", error);
+                toast.error("추가에 실패했습니다.");
+                setFileName(''); // 파일명 초기화
+            });
         } else {
-            alert('.geojson 파일만 업로드 가능합니다.');
+            toast.warn('.geojson 파일만 업로드 가능합니다.');
             setFileName('');
         }
     };
 
-    // 규제지역 이름 업데이트 - 로직은 추후 구현
-    const handleUpdateArea = (id, newAreaName) => {
-        // 이름 업데이트 로직은 추후 구현
-        setEditMode((prev) => ({ ...prev, [id]: false }));
+    const inputRef = useRef(null);
+    // 규제지역 이름 업데이트
+    const handleUpdateArea = (id) => {
+        if (areaName.trim().length > 0) {
+            api.put(`/api/businesses/regulatedArea/update/${id}`, null, {
+                params: { areaName },
+            })
+            .then((response) => {
+                // 성공적으로 업데이트된 경우, 목록의 해당 항목 이름을 업데이트
+                setRegulatedAreas((prevAreas) =>
+                    prevAreas.map((area) =>
+                        area.areaId === id ? { ...area, areaName: response.data.areaName } : area
+                    )
+                );
+                setEditMode((prev) => ({ ...prev, [id]: false }));
+                setAreaName(''); // 이름 입력 초기화
+                toast.success("성공적으로 수정되었습니다.")
+            })
+            .catch((error) => {
+                console.error("Error updating area name:", error);
+            });
+        } else {
+            toast.warn("이름은 최소 1자 이상 입력해야 합니다.");
+            inputRef.current.focus();
+        }
     };
 
     // 규제지역 삭제 - 로직은 추후 구현
     const handleDeleteArea = (id) => {
-        // 삭제 로직은 추후 구현
+        api.delete(`/api/businesses/regulatedArea/delete/${id}`)
+            .then(() => {
+                // 성공적으로 삭제된 경우, 규제지역 목록에서 해당 항목 제거
+                setRegulatedAreas((prevAreas) => prevAreas.filter((area) => area.areaId !== id));
+                toast.success("성공적으로 삭제되었습니다.");
+            })
+            .catch((error) => {
+                console.error("Error deleting regulated area:", error);
+                toast.error("삭제에 실패했습니다.");
+            });
     };
 
     return (
         <div className="business-list-container">
+            <ToastContainer 
+                position="bottom-center" 
+                autoClose={2000}
+            />
             {/* Header section */}
             <header className="header" onClick={() => window.location.reload()}>
                 <img src={headerImage} alt="Header" />
@@ -453,7 +547,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                     {isMenuOpen && (
                         <div className="menu-options" ref={menuRef}>
                             <button className="regulated-area-upload-button" onClick={openAreaModal}>
-                                규제지역 파일 업로드
+                                규제지역 관리
                             </button>
                             <button className="logout-button" onClick={handleLogout}>
                                 로그아웃
@@ -648,7 +742,7 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
                 <div className="area-modal-overlay">
                     <div className="area-modal">
                         <div className="modal-header">
-                            <h2>규제지역 목록</h2>
+                            <h2>규제지역 관리</h2>
                             <button className="close-button" onClick={closeAreaModal}>X</button>
                         </div>
 
@@ -674,39 +768,50 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
                         {/* 규제지역 목록 */}
                         <div className="area-list">
-                            {regulatedAreas.map((area) => (
-                                <div key={area.area_id} className="area-item">
-                                    {editMode[area.area_id] ? (
+                        {regulatedAreas.length > 0 ? (
+                            regulatedAreas.map((area) => (
+                                <div key={area.areaId} className="area-item">
+                                    {editMode[area.areaId] ? (
                                         <input
+                                            ref={inputRef}
                                             type="text"
                                             value={areaName}
                                             onChange={(e) => setAreaName(e.target.value)}
-                                            maxLength={30}
+                                            maxLength={20}
                                             className="edit-input"
+                                            required
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleUpdateArea(area.areaId);
+                                                }
+                                            }}
                                         />
                                     ) : (
-                                        <span className="area-name">{area.area_name}</span>
+                                        <span className="area-name">{area.areaName}</span>
                                     )}
-                                    {editMode[area.area_id] ? (
+                                    {editMode[area.areaId] ? (
                                         <MdCheck
                                             className="icon-button"
-                                            onClick={() => handleUpdateArea(area.area_id)}
+                                            onClick={() => handleUpdateArea(area.areaId)}
                                         />
                                     ) : (
                                         <MdEdit
                                             className="icon-button"
                                             onClick={() => {
-                                                setAreaName(area.area_name);
-                                                setEditMode((prev) => ({ ...prev, [area.area_id]: true }));
+                                                setAreaName(area.areaName);
+                                                setEditMode((prev) => ({ ...prev, [area.areaId]: true }));
                                             }}
                                         />
                                     )}
                                     <MdClose
                                         className="icon-button"
-                                        onClick={() => handleDeleteArea(area.area_id)}
+                                        onClick={() => handleDeleteArea(area.areaId)}
                                     />
                                 </div>
-                            ))}
+                            ))
+                        ) : (
+                            <p className="no-areas-message">추가된 규제지역이 없습니다.</p>
+                        )}
                         </div>
                     </div>
                 </div>

@@ -185,7 +185,6 @@
   flex: 1;
   padding: 8px;
   margin-right: 8px;
-  /* border: 1px solid #ccc; */
   border-radius: 24px;
   background-color: #eaf1fb;
   min-height: 32px;
@@ -550,13 +549,16 @@
   border-radius: 8px;
   width: 90%;
   max-width: 400px;
+  min-height: 250px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
+/* Modal Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
+  height: 40px;
   align-items: center;
   margin-bottom: 15px;
 }
@@ -568,27 +570,50 @@
   cursor: pointer;
 }
 
+/* File Upload Section */
 .file-input-group {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
 }
 
-.file-upload-button {
-  background-color: #007bff;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
 .file-name-display {
-  margin-left: 10px;
+  flex: 1;
+  padding: 5px;
   font-size: 0.9em;
   color: #555;
+  border: 1px solid #ddd;
+  border-radius: 5px 0 0 5px;
+  background-color: #f8f9fa;
+  box-sizing: border-box;
+  height: 40px; /* 버튼과 같은 높이 */
 }
 
+.file-upload-button {
+  padding: 0 15px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  height: 40px; /* 입력 필드와 동일한 높이로 설정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.file-upload-button:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.no-areas-message {
+  color: #888;
+  font-size: 1em;
+  text-align: center;
+  margin-top: 50px;
+}
+
+/* Area List Section */
 .area-list {
   margin-top: 15px;
 }
@@ -604,12 +629,31 @@
   flex: 1;
   font-size: 1em;
   color: #333;
+  text-align: left; /* 좌측 정렬 */
 }
 
+.icon-button {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+/* 수정 입력 필드 스타일 */
 .edit-input {
   flex: 1;
-  padding: 5px;
+  padding: 6px 8px;
   font-size: 1em;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.edit-input:focus {
+  border-color: #007bff;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
 
 /* Footer Section */
@@ -625,10 +669,8 @@
 }
 
 
-/* 화면이 768px 이하로 작아질 때 적용될 새로운 CSS */
 /* 기본 CSS는 그대로 유지 */
 
-/* 768px 이하 화면에서 적용될 새로운 CSS */
 /* 768px 이하 화면에서 적용될 새로운 CSS */
 @media (max-width: 768px) {
   .business-list-container {
@@ -847,18 +889,30 @@
   }
 
 
-  .file-name-input,
-  .region-name-input {
-    width: 100%; /* 부모 요소의 너비에 맞춤 */
-    padding: 8px; /* 패딩 줄임 */
-    font-size: 0.9em; /* 폰트 크기 줄임 */
+
+  .area-modal {
+    width: 80%; /* 작은 화면에서 양 옆에 여백 추가 */
+    padding: 15px;
   }
 
+  .modal-header h2 {
+    font-size: 1.1em; /* 헤더 글씨 크기 줄이기 */
+  }
+
+  .area-list {
+    max-height: 150px; /* 작은 화면에서 리스트 높이 제한 */
+    overflow-y: auto; /* 스크롤 활성화 */
+  }
+
+  .file-name-display,
   .file-upload-button {
-    padding: 8px 10px; /* 버튼 패딩 줄임 */
-    font-size: 1em; /* 버튼 폰트 크기 조정 */
+    height: 35px; /* 버튼 및 입력 필드 높이 조정 */
   }
 
+  .edit-input {
+    padding: 5px 7px;
+    font-size: 0.9em;
+  }
 
   
 }
