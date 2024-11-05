@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
+import './Modal.css';
 
 const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, business }) => {
   const [name, setName] = useState('');
@@ -9,24 +10,76 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
   const [longitude, setLongitude] = useState('');
   const [activeTab, setActiveTab] = useState('model');
 
+  // 도, 분, 초, 방향 상태
+  const [latDegrees, setLatDegrees] = useState('');
+  const [latMinutes, setLatMinutes] = useState('');
+  const [latSeconds, setLatSeconds] = useState('');
+  const [latDirection, setLatDirection] = useState('N');
+  const [lngDegrees, setLngDegrees] = useState('');
+  const [lngMinutes, setLngMinutes] = useState('');
+  const [lngSeconds, setLngSeconds] = useState('');
+  const [lngDirection, setLngDirection] = useState('E');
 
   useEffect(() => {
+    if (show) {
+      setActiveTab('model'); // 모달이 열릴 때 항상 "모델 지정" 탭을 기본으로 설정
+    }
     if (marker) {
-      if (!marker.markerId) {
-        setName(`마커 ${markersLength + 1}`);
-      } else {
-        setName(marker.markerName || '');
-      }
+      setName(marker.markerId ? marker.markerName || '' : `마커 ${markersLength + 1}`);
       setModel(marker.modelName || '두산중공업 풍력 발전기');
       setAngle(marker.angle || 0);
       setLatitude(marker.latitude || '');
       setLongitude(marker.longitude || '');
+      // 위도/경도를 도/분/초로 변환
+      if (marker.latitude && marker.longitude) {
+        convertToDMS(marker.latitude, marker.longitude);
+      }
     }
-  }, [marker, markersLength, business]);
+  }, [marker, markersLength, business, show]);
 
   if (!show) return null;
+
+  // 위도/경도를 도/분/초로 변환하는 함수
+  const convertToDMS = (lat, lng) => {
+    const latDir = lat >= 0 ? 'N' : 'S';
+    const lngDir = lng >= 0 ? 'E' : 'W';
+
+    const [latD, latM, latS] = toDMS(Math.abs(lat));
+    const [lngD, lngM, lngS] = toDMS(Math.abs(lng));
+
+    setLatDegrees(latD);
+    setLatMinutes(latM);
+    setLatSeconds(latS);
+    setLatDirection(latDir);
+
+    setLngDegrees(lngD);
+    setLngMinutes(lngM);
+    setLngSeconds(lngS);
+    setLngDirection(lngDir);
+  };
+
+  const toDMS = (decimal) => {
+    const degrees = Math.floor(decimal);
+    const minutes = Math.floor((decimal - degrees) * 60);
+    const seconds = Math.round((decimal - degrees - minutes / 60) * 3600);
+    return [degrees, minutes, seconds];
+  };
+
+  // 도/분/초를 위도/경도로 변환하는 함수
+  const convertToDecimal = () => {
+    const lat = toDecimal(latDegrees, latMinutes, latSeconds, latDirection === 'S');
+    const lng = toDecimal(lngDegrees, lngMinutes, lngSeconds, lngDirection === 'W');
+
+    setLatitude(lat.toFixed(6));
+    setLongitude(lng.toFixed(6));
+  };
+
+  const toDecimal = (degrees, minutes, seconds, isNegative) => {
+    const decimal = Math.abs(degrees) + minutes / 60 + seconds / 3600;
+    return isNegative ? -decimal : decimal;
+  };
+
   const handleRegisterClick = async () => {
-    // business.id를 businessId로 변환하여 전달
     const markerData = {
       markerId: marker?.markerId || null,
       markerName: name,
@@ -35,199 +88,194 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
       business: {
-        businessId: business.id // business 객체 대신 id를 직접 전달
+        businessId: business.id
       }
-        };
-  
-    console.log("Sending marker data:", markerData); // 전송 데이터 확인
-  
+    };
+
     try {
       const response = await api.post('/api/businesses/map/post/marker/add', markerData);
-      onRegister(response.data); // API 응답 데이터 사용
-      onClose(); // 모달 닫기
+      onRegister(response.data);
+      onClose();
     } catch (error) {
       console.error("Failed to save marker:", error);
     }
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <div style={tabHeaderStyle}>
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="tab-header">
           <button
-            style={activeTab === 'model' ? activeTabButtonStyle : tabButtonStyle}
+            className={`tab-button ${activeTab === 'model' ? 'active-tab-button' : ''}`}
             onClick={() => setActiveTab('model')}
           >
             모델 지정
           </button>
           <button
-            style={activeTab === 'coordinates' ? activeTabButtonStyle : tabButtonStyle}
+            className={`tab-button ${activeTab === 'coordinates' ? 'active-tab-button' : ''}`}
             onClick={() => setActiveTab('coordinates')}
           >
             좌표 지정
           </button>
         </div>
-        <div style={contentWrapperStyle}>
+        <div className="content-wrapper">
           {activeTab === 'model' ? (
             <>
-              <div style={formGroupStyle}>
+              <div className="form-group">
                 <label>마커 이름</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  style={inputStyle}
+                  className="input-field"
                 />
               </div>
-              <div style={formGroupStyle}>
+              <div className="form-group">
                 <label>모델 지정</label>
-                <select value={model} onChange={(e) => setModel(e.target.value)} style={inputStyle}>
+                <select value={model} onChange={(e) => setModel(e.target.value)} className="input-field">
                   <option>두산중공업 풍력 발전기</option>
                   <option>현대중공업 풍력 발전기</option>
                 </select>
               </div>
-              <div style={formGroupStyle}>
+              <div className="form-group">
                 <label>방향 각도</label>
                 <input
                   type="number"
                   value={angle}
                   onChange={(e) => setAngle(e.target.value)}
-                  style={inputStyle}
+                  className="input-field"
                 />
               </div>
             </>
           ) : (
             <>
-              <div style={formGroupStyle}>
-                <label>위도</label>
+            <div className="form-group">
+              <label>위도</label>
+              <input
+                type="number"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                onBlur={() => convertToDMS(parseFloat(latitude), parseFloat(longitude))}
+                className="input-field"
+              />
+            </div>
+            <div className="form-group">
+              <label>경도</label>
+              <input
+                type="number"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                onBlur={() => convertToDMS(parseFloat(latitude), parseFloat(longitude))}
+                className="input-field"
+              />
+            </div>
+
+            {/* 위도에 대한 Degrees, Minutes, Seconds, Direction 필드 */}
+            <div className="dms-group">
+              <div className="dms-row">
+                <label>Degrees (위도)</label>
                 <input
                   type="number"
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
-                  style={inputStyle}
+                  value={latDegrees}
+                  onChange={(e) => setLatDegrees(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
                 />
               </div>
-              <div style={formGroupStyle}>
-                <label>경도</label>
+              <div className="dms-row">
+                <label>Minutes</label>
                 <input
                   type="number"
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
-                  style={inputStyle}
+                  value={latMinutes}
+                  onChange={(e) => setLatMinutes(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
                 />
               </div>
-            </>
+              <div className="dms-row">
+                <label>Seconds</label>
+                <input
+                  type="number"
+                  value={latSeconds}
+                  onChange={(e) => setLatSeconds(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                />
+              </div>
+              <div className="dms-row">
+                <label>Direction</label>
+                <select
+                  value={latDirection}
+                  onChange={(e) => setLatDirection(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                >
+                  <option>N</option>
+                  <option>S</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 경도에 대한 Degrees, Minutes, Seconds, Direction 필드 */}
+            <div className="dms-group">
+              <div className="dms-row">
+                <label>Degrees (경도)</label>
+                <input
+                  type="number"
+                  value={lngDegrees}
+                  onChange={(e) => setLngDegrees(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                />
+              </div>
+              <div className="dms-row">
+                <label>Minutes</label>
+                <input
+                  type="number"
+                  value={lngMinutes}
+                  onChange={(e) => setLngMinutes(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                />
+              </div>
+              <div className="dms-row">
+                <label>Seconds</label>
+                <input
+                  type="number"
+                  value={lngSeconds}
+                  onChange={(e) => setLngSeconds(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                />
+              </div>
+              <div className="dms-row">
+                <label>Direction</label>
+                <select
+                  value={lngDirection}
+                  onChange={(e) => setLngDirection(e.target.value)}
+                  onBlur={convertToDecimal}
+                  className="input-field-small"
+                >
+                  <option>E</option>
+                  <option>W</option>
+                </select>
+              </div>
+            </div>
+          </>
           )}
         </div>
-        <div style={buttonWrapperStyle}>
-          <button style={cancelButtonStyle} onClick={onClose}>취소하기</button>
-              {/* markerId가 있는 경우에만 삭제 버튼 표시 */}
-              {marker?.markerId && (
-                <button style={deleteButtonStyle} onClick={() => onDelete(marker.markerId)}>삭제하기</button>
-              )}
-
-          <button style={registerButtonStyle} onClick={handleRegisterClick}>등록하기</button>
+        <div className="button-wrapper">
+          <button className="cancel-button" onClick={onClose}>취소하기</button>
+          {marker?.markerId && (
+            <button className="delete-button" onClick={() => onDelete(marker.markerId)}>삭제하기</button>
+          )}
+          <button className="register-button" onClick={handleRegisterClick}>
+            {marker?.markerId ? '수정하기' : '등록하기'}
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-
-// 스타일 정의
-const overlayStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-};
-
-const modalStyle = {
-  backgroundColor: 'white',
-  borderRadius: '10px',
-  padding: '20px',
-  width: '350px',
-  maxWidth: '100%',
-  textAlign: 'center',
-};
-
-const tabHeaderStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  marginBottom: '15px',
-};
-
-const tabButtonStyle = {
-  flex: 1,
-  padding: '10px',
-  backgroundColor: '#f1f1f1',
-  border: 'none',
-  cursor: 'pointer',
-  borderRadius: '5px',
-  margin: '0 5px',
-};
-
-const activeTabButtonStyle = {
-  ...tabButtonStyle,
-  backgroundColor: '#ddd',
-  fontWeight: 'bold',
-};
-
-const contentWrapperStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  marginBottom: '20px',
-};
-
-const formGroupStyle = {
-  width: '100%',
-  marginBottom: '10px',
-  textAlign: 'left',
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '8px',
-  borderRadius: '5px',
-  border: '1px solid #ccc',
-};
-
-const buttonWrapperStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-};
-
-const cancelButtonStyle = {
-  padding: '10px 20px',
-  backgroundColor: '#ccc',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-};
-
-const deleteButtonStyle = {
-  padding: '10px 20px',
-  backgroundColor: '#e74c3c',
-  color: 'white',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-};
-
-const registerButtonStyle = {
-  padding: '10px 20px',
-  backgroundColor: '#4CAF50',
-  color: 'white',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
 };
 
 export default Modal;
