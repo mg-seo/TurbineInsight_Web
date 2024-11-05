@@ -79,52 +79,56 @@ const MapPage = ({ business, userId }) => {
     console.error('Failed to update title:', error);
   }
 };
-useEffect(() => {
-  const fetchMarkers = async () => {
-    if (!business?.id || !mapInstance.current) return;
-    try {
-      const response = await api.get(`/api/businesses/map/get/marker/${business.id}`);
-      
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        const oldestMarker = response.data.reduce((oldest, marker) => {
-          return new Date(marker.createdAt) < new Date(oldest.createdAt) ? marker : oldest;
-        }, response.data[0]);
+const fetchMarkers = async () => {
+  if (!business?.id) return;
 
-        console.log("Fetched markers data:", response.data);
+  try {
+    const response = await api.get(`/api/businesses/map/get/marker/${business.id}`);
+    
+    if (Array.isArray(response.data)) {
+      console.log("Fetched markers:", response.data);
 
-        // 지도의 중심을 가장 오래된 마커의 위치로 설정
-        mapInstance.current.setCenter({
-          lat: oldestMarker.latitude,
-          lng: oldestMarker.longitude,
+      // 기존 마커 제거
+      markers.forEach(marker => {
+        if (marker.markerInstance) {
+          marker.markerInstance.setMap(null); // 지도에서 마커 제거
+        }
+      });
+
+      // 마커 배열 초기화
+      setMarkers([]);
+
+      // 새 마커 추가 (애니메이션 조건부 적용)
+      const newMarkers = response.data.map((markerData) => {
+        const existingMarker = markers.find(m => m.markerId === markerData.markerId);
+        
+        const markerInstance = new window.google.maps.Marker({
+          position: { lat: markerData.latitude, lng: markerData.longitude },
+          map: mapInstance.current,
+          title: markerData.markerName,
+          animation: existingMarker ? null : window.google.maps.Animation.DROP, // 기존 마커일 경우 애니메이션 없음
         });
 
-        const newMarkers = response.data.map((markerData) => {
-          const markerInstance = new window.google.maps.Marker({
-            position: { lat: markerData.latitude, lng: markerData.longitude },
-            map: mapInstance.current,
-            title: markerData.markerName,
-            animation: window.google.maps.Animation.DROP,
-          });
+        markerInstance.addListener('click', () => handleEditMarker(markerData));
 
-          markerInstance.addListener('click', () => handleEditMarker(markerData));
+        return { ...markerData, markerInstance };
+      });
 
-          return { ...markerData, markerInstance };
-        });
-
-        setMarkers(newMarkers);
-      } else {
-        console.error("Unexpected response format:", response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching marker data:', error.message);
+      setMarkers(newMarkers); // 상태에 새 마커 설정
+    } else {
+      console.warn("No markers found for this business ID:", business.id);
+      setMarkers([]); // 빈 배열로 설정하여 UI에서 마커가 없음을 반영
     }
-  };
-
-  // Map이 로드되고 나서 fetchMarkers 호출
-  if (isMapLoaded && business?.id) {
-    fetchMarkers();
+  } catch (error) {
+    console.error("Error fetching markers:", error.response?.data || error.message);
   }
-}, [isMapLoaded, business?.id]);
+};
+
+  useEffect(() => {
+    if (isMapLoaded && business?.id) {
+      fetchMarkers(); // 지도 로드 후 fetchMarkers 호출
+    }
+  }, [isMapLoaded, business?.id]);
 
   // 상태 외에 플래그 변수를 추가하여 클릭 이벤트 차단 제어
 // 전역 플래그 변수 추가
@@ -250,85 +254,71 @@ const handleMapClick = (location) => {
     }
   }, [userId, business.id]);
   
-
-
+  // 마커 등록 및 수정 함수
 const handleRegisterMarker = async (updatedMarker) => {
-    try {
-        const markerData = {
-            ...updatedMarker,
-            businessId: business.id, // business 객체에서 ID를 가져옴
-        };
-
-        const response = await api.post('/api/businesses/map/post/marker/add', markerData);
-        const savedMarker = response.data; // 서버로부터 반환된 마커 정보
-
-        setMarkers((prevMarkers) => {
-            const existingMarkerIndex = prevMarkers.findIndex(marker => marker.markerId === savedMarker.markerId);
-            
-            if (existingMarkerIndex !== -1) {
-                // 기존 마커 수정
-                const updatedMarkers = [...prevMarkers];
-                const existingMarker = updatedMarkers[existingMarkerIndex];
-
-                // 지도에서 마커 이름 업데이트
-                if (existingMarker.markerInstance) {
-                    existingMarker.markerInstance.setTitle(savedMarker.markerName);
-                }
-
-                // 상태 배열에서도 마커 정보 업데이트
-                updatedMarkers[existingMarkerIndex] = {
-                    ...existingMarker,
-                    ...savedMarker,
-                };
-
-                return updatedMarkers;
-            } else {
-                // 새로운 마커 추가
-                const markerInstance = new window.google.maps.Marker({
-                    position: { lat: savedMarker.latitude, lng: savedMarker.longitude },
-                    map: mapInstance.current,
-                    title: savedMarker.markerName,
-                    animation: window.google.maps.Animation.DROP,
-                });
-                
-                // 마커 클릭 이벤트 추가
-                markerInstance.addListener('click', () => handleEditMarker(savedMarker));
-
-                return [...prevMarkers, { ...savedMarker, markerInstance }];
-            }
-        });
-
-        setPendingMarker(null);
-        setIsModalOpen(false);
-    } catch (error) {
-        console.error("Failed to save marker:", error);
-    }
-};
-
-// 마커 삭제 함수
-const handleDeleteMarker = async (markerId) => {
   try {
-    await api.delete(`/api/businesses/map/delete/marker/${markerId}`);
-    console.log("Marker deleted");
+    const markerData = {
+      ...updatedMarker,
+      businessId: business.id,
+    };
 
-    // UI에서 마커 제거 및 지도에서 해당 마커 삭제
-    setMarkers((prevMarkers) => {
-      return prevMarkers.filter((marker) => {
-        if (marker.markerId === markerId) {
-          if (marker.markerInstance) {
-            marker.markerInstance.setMap(null); // markerInstance가 있을 때만 지도에서 마커 제거
-          }
-          return false; // 해당 마커를 필터링하여 제거
-        }
-        return true; // 나머지 마커 유지
-      });
-    });
+    if (pendingMarker?.markerId) {
+      // 기존 마커 업데이트
+      await api.post(`/api/businesses/map/post/marker/update/${pendingMarker.markerId}`, markerData);
+    } else {
+      // 새로운 마커 추가
+      await api.post('/api/businesses/map/post/marker/add', markerData);
+    }
+
+    // 마커 목록 재조회하여 최신 상태 유지
+    await fetchMarkers();
+
+    // 상태 초기화 및 모달 닫기
     setIsModalOpen(false);
-
+    setPendingMarker(null); // 선택된 마커 초기화
+    setCanPlaceMarker(true); // 마커 추가 허용
   } catch (error) {
-    console.error("Error deleting marker:", error);
+    console.error("Failed to save marker:", error);
   }
 };
+  
+  
+
+  const markerInstances = useRef([]); // 마커 인스턴스를 저장하는 배열
+
+  const handleDeleteMarker = async (markerId) => {
+    try {
+      await api.delete(`/api/businesses/map/delete/marker/${markerId}`);
+      console.log("Marker deleted:", markerId);
+  
+      // UI에서 마커 제거 및 지도에서 해당 마커 삭제
+      setMarkers((prevMarkers) => {
+        return prevMarkers.filter((marker) => {
+          if (marker.markerId === markerId) {
+            if (marker.markerInstance) {
+              console.log("Removing marker from map:", marker.markerId);
+              marker.markerInstance.setMap(null); // 지도에서 마커 제거
+            }
+            return false; // 상태에서 제거
+          }
+          return true;
+        });
+      });
+  
+      // markerInstances 배열에서도 해당 마커 인스턴스 제거
+      markerInstances.current = markerInstances.current.filter(instance => {
+        if (instance.markerId === markerId) {
+          instance.setMap(null); // 지도에서 마커 제거
+          return false;
+        }
+        return true;
+      });
+  
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting marker:", error);
+    }
+  };
 //사업 상세보기
 const handleBusinessToggle = (businessId, isChecked, index) => {
   if (isChecked) {
@@ -433,11 +423,12 @@ const fetchOtherBusinessMarkers = async (otherBusinessId, index) => {
 };
 
 
-// 마커 수정 모달 열기 함수
 const handleEditMarker = (marker) => {
-  setPendingMarker(marker);
-  setIsModalOpen(true);
+  console.log("Received marker in handleEditMarker:", marker); // handleEditMarker로 전달된 marker
+  setPendingMarker(marker); // marker를 pendingMarker에 설정
+  setIsModalOpen(true); // 모달 열기
 };
+
 
 
 const handleCloseModal = () => {
@@ -511,8 +502,13 @@ const handleCloseModal = () => {
                      {marker.latitude.toFixed(6)}, {marker.longitude.toFixed(6)}
                   </div>
                 </div>
-                <button className="edit-button" onClick={() => handleEditMarker(marker)}>
-                  <FaEdit />
+                <button className="edit-button" onClick={() => {
+                  console.log("Marker data from Sidebar edit button:", marker); // Sidebar에서 전달되는 marker
+                  handleEditMarker(marker);
+
+                }}>      
+
+            <FaEdit />
                 </button>
               </div>
             ))}
