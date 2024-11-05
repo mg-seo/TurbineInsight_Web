@@ -37,6 +37,11 @@ const Login = ({ setUserId }) => {
                     value={inputUserId}
                     onChange={(e) => setInputUserId(e.target.value)}
                     placeholder="10자리 사용자 ID를 입력하세요"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleLogin();
+                        }
+                    }}
                 />
                 <button className="login-button" onClick={handleLogin}>로그인</button>
                 {errorMessage && <p className="error-message">{errorMessage}</p>}
