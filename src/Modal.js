@@ -11,7 +11,6 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
 
 
   useEffect(() => {
-    console.log("Received business ID in Modal:", business); // businessId 확인 로그
     if (marker) {
       if (!marker.markerId) {
         setName(`마커 ${markersLength + 1}`);
