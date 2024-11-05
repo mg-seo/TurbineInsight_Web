@@ -91,7 +91,6 @@ const BusinessList = ({ setSelectedBusiness, userId }) => {
 
     const handleLogout = () => {
         sessionStorage.removeItem('userId');
-        console.log('Logging out...');
         navigate('/');
     };
     
