@@ -5,6 +5,8 @@ import Sidebar from './Sidebar';
 import Modal from './Modal';
 import api from './api';
 import './MapPage.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const libraries = ['marker'];
 
@@ -22,17 +24,8 @@ const MapPage = ({ business, userId }) => {
   const [selectedBusinesses, setSelectedBusinesses] = useState([]);
   const [otherMarkers, setOtherMarkers] = useState({}); // 다른 사업 마커를 저장할 상태
   const [canPlaceMarker, setCanPlaceMarker] = useState(true); // 마커 찍기 가능 여부 상태
-
-  const [restrictAreaFiles, setRestrictAreaFiles] = useState([
-    { fileName: 'fish.geojson', displayName: '어류 보호구역', color: '#FF0000', isChecked: false },
-    { fileName: 'mammalia.geojson', displayName: '포유류 보호구역', color: '#0000FF', isChecked: false },
-    { fileName: 'reptile.geojson', displayName: '파충류 보호구역', color: '#00FF00', isChecked: false },
-    { fileName: 'seaweed.geojson', displayName: '해조류 보호구역', color: '#FFA500', isChecked: false },
-    { fileName: 'prtwt_surface.geojson', displayName: '표면 보호구역', color: '#800080', isChecked: false },
-    { fileName: 'pwtrs_a.geojson', displayName: '담수 보호구역', color: '#FFFF00', isChecked: false },
-    { fileName: 'wld_lvb_pzn_a.geojson', displayName: '야생 서식지', color: '#00FFFF', isChecked: false },
-    { fileName: 'intb_anml_a.geojson', displayName: '국내동물 보호구역', color: '#FFC0CB', isChecked: false },
-  ]);
+  const [regulatedAreas, setRegulatedAreas] = useState([]); // 규제지역 목록 상태
+  const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFA500', '#800080', '#FFFF00', '#00FFFF', '#FFC0CB']; // 색상 배열
 
   useEffect(() => {
     // 제목 불러오기
@@ -175,64 +168,6 @@ const handleMapClick = (location) => {
   marker.addListener('click', () => handleEditMarker(newMarker));
 };
 
-
-  const handleRestrictAreaToggle = async (area, checked) => {
-    const { fileName, color } = area;
-    const filePath = `/geojson/${fileName}`;
-
-    setRestrictAreaFiles((prevFiles) =>
-      prevFiles.map((file) =>
-        file.fileName === fileName ? { ...file, isChecked: checked } : file
-      )
-    );
-
-    if (checked) {
-      try {
-        const response = await fetch(filePath);
-        if (!response.ok) throw new Error("Failed to load GeoJSON data");
-        const geoJsonData = await response.json();
-
-        const addedFeatures = mapInstance.current.data.addGeoJson(geoJsonData);
-        addedFeatures.forEach((feature) => {
-          feature.setProperty("fileName", fileName);
-          mapInstance.current.data.overrideStyle(feature, {
-            fillColor: color,
-            strokeColor: color,
-            strokeWeight: 2,
-            fillOpacity: 0.4,
-          });
-        });
-
-        setMarkers((prevMarkers) => {
-          return prevMarkers.filter((marker) => {
-            const isInRestrictedArea = addedFeatures.some((feature) => {
-              return (
-                feature.getGeometry().getType() === 'Polygon' &&
-                window.google.maps.geometry.poly.containsLocation(
-                  marker.position,
-                  feature.getGeometry()
-                )
-              );
-            });
-            if (isInRestrictedArea) {
-              marker.markerInstance.setMap(null);
-              return false;
-            }
-            return true;
-          });
-        });
-      } catch (error) {
-        console.error("Error loading GeoJSON data:", error);
-      }
-    } else {
-      mapInstance.current.data.forEach((feature) => {
-        if (feature.getProperty("fileName") === fileName) {
-          mapInstance.current.data.remove(feature);
-        }
-      });
-    }
-  };
-
   useEffect(() => {
     const fetchBusinessList = async () => {
       try {
@@ -265,9 +200,11 @@ const handleRegisterMarker = async (updatedMarker) => {
     if (pendingMarker?.markerId) {
       // 기존 마커 업데이트
       await api.post(`/api/businesses/map/post/marker/update/${pendingMarker.markerId}`, markerData);
+      toast.success("마커가 수정 되었습니다.")
     } else {
       // 새로운 마커 추가
       await api.post('/api/businesses/map/post/marker/add', markerData);
+      toast.success("마커가 새로 추가되었습니다.")
     }
 
     // 마커 목록 재조회하여 최신 상태 유지
@@ -277,6 +214,7 @@ const handleRegisterMarker = async (updatedMarker) => {
     setIsModalOpen(false);
     setPendingMarker(null); // 선택된 마커 초기화
     setCanPlaceMarker(true); // 마커 추가 허용
+    
   } catch (error) {
     console.error("Failed to save marker:", error);
   }
@@ -289,8 +227,7 @@ const handleRegisterMarker = async (updatedMarker) => {
   const handleDeleteMarker = async (markerId) => {
     try {
       await api.delete(`/api/businesses/map/delete/marker/${markerId}`);
-      console.log("Marker deleted:", markerId);
-  
+      toast.success("마커가 삭제되었습니다.")
       // UI에서 마커 제거 및 지도에서 해당 마커 삭제
       setMarkers((prevMarkers) => {
         return prevMarkers.filter((marker) => {
@@ -323,7 +260,7 @@ const handleRegisterMarker = async (updatedMarker) => {
 const handleBusinessToggle = (businessId, isChecked, index) => {
   if (isChecked) {
     if (selectedBusinesses.length >= 3) {
-      alert("최대 3개까지 선택할 수 있습니다."); // 알림 메시지
+      toast.warn("최대 3개까지 선택할 수 있습니다."); // 알림 메시지
       return;
     }
     fetchOtherBusinessMarkers(businessId, index); // 인덱스를 함께 전달
@@ -440,12 +377,78 @@ const handleCloseModal = () => {
   setPendingMarker(null); // pendingMarker 초기화
   setCanPlaceMarker(true); // 마커 찍기 허용 상태로 변경
 };
+ // 사용자 ID로 규제지역 목록을 불러오기
+ useEffect(() => {
+  if (userId) {
+    api.get(`/api/businesses/regulatedArea/list/${userId}`)
+      .then((response) => {
+        const areasWithColors = response.data.map((area, index) => ({
+          ...area,
+          color: colors[index % colors.length],
+          isChecked: false
+        }));
+        setRegulatedAreas(areasWithColors);
+      })
+      .catch((error) => {
+        console.error("Error fetching regulated areas:", error);
+      });
+  }
+}, [userId]);
 
+// 규제지역의 GeoJSON 파일을 로드하여 지도에 표시하는 함수
+const handleAreaToggle = async (areaId, checked) => {
+  setRegulatedAreas(prevAreas =>
+    prevAreas.map(area =>
+      area.areaId === areaId ? { ...area, isChecked: checked } : area
+    )
+  );
 
+  const area = regulatedAreas.find((item) => item.areaId === areaId);
+
+  if (checked) {
+    try {
+      const response = await fetch(area.filePath);
+      if (!response.ok) throw new Error("Failed to load GeoJSON data");
+      const geoJsonData = await response.json();
+
+      const addedFeatures = mapInstance.current.data.addGeoJson(geoJsonData);
+      addedFeatures.forEach((feature) => {
+        feature.setProperty("areaId", area.areaId);
+        mapInstance.current.data.overrideStyle(feature, {
+          fillColor: area.color,
+          strokeColor: area.color,
+          strokeWeight: 2,
+          fillOpacity: 0.4,
+        });
+      });
+      // 기존 클릭 이벤트 리스너를 제거
+      window.google.maps.event.clearListeners(mapInstance.current.data, "click");
+      
+      mapInstance.current.data.addListener("click", (event) => {
+        const clickedAreaId = event.feature.getProperty("areaId");
+        if (clickedAreaId === areaId) {
+          toast.warn(`${area.areaName} 지역에는 마커를 추가 할 수 없습니다.`);
+        }
+      });
+    } catch (error) {
+      console.error("Error loading GeoJSON data:", error);
+    }
+  } else {
+    mapInstance.current.data.forEach((feature) => {
+      if (feature.getProperty("areaId") === area.areaId) {
+        mapInstance.current.data.remove(feature);
+      }
+    });
+  }
+};
 
   return (
     
     <div className="main-container">
+      <ToastContainer 
+        position="bottom-center"
+        autoClose={2000}
+      />
       <LoadScriptNext
         googleMapsApiKey="AIzaSyCj-nZeQ2J0gl-NvEEjJSh6inRhSPfTDm8"
         libraries={libraries}
@@ -540,14 +543,14 @@ const handleCloseModal = () => {
               <button className="close-button" onClick={() => setSelectedSection('')}>X</button>
             </div>
             <h3 className="section-title">규제 지역</h3>
-            {restrictAreaFiles.map((area) => (
-              <div key={area.fileName} className="marker-item">
+            {regulatedAreas.map((area) => (
+              <div key={area.areaId} className="marker-item">
                 <input
                   type="checkbox"
-                  checked={area.isChecked}
-                  onChange={(e) => handleRestrictAreaToggle(area, e.target.checked)}
+                  checked={area.isChecked} // 초기 상태는 false로 설정
+                  onChange={(e) => handleAreaToggle(area.areaId, e.target.checked)}
                 />
-                <span>{area.displayName}</span>
+                <span>{area.areaName}</span> {/* 규제지역 이름을 표시 */}
               </div>
             ))}
           </>
