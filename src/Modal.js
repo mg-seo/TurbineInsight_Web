@@ -19,7 +19,43 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
   const [lngMinutes, setLngMinutes] = useState('');
   const [lngSeconds, setLngSeconds] = useState('');
   const [lngDirection, setLngDirection] = useState('E');
+ // 위도/경도를 도/분/초로 변환하는 함수
+ const convertToDMS = (lat, lng) => {
+  const latDir = lat >= 0 ? 'N' : 'S';
+  const lngDir = lng >= 0 ? 'E' : 'W';
 
+  const [latD, latM, latS] = toDMS(Math.abs(lat));
+  const [lngD, lngM, lngS] = toDMS(Math.abs(lng));
+
+  setLatDegrees(latD);
+  setLatMinutes(latM);
+  setLatSeconds(latS);
+  setLatDirection(latDir);
+
+  setLngDegrees(lngD);
+  setLngMinutes(lngM);
+  setLngSeconds(lngS);
+  setLngDirection(lngDir);
+};
+const toDMS = (decimal) => {
+  const degrees = Math.floor(decimal);
+  const minutes = Math.floor((decimal - degrees) * 60);
+  const seconds = Math.round((decimal - degrees - minutes / 60) * 3600);
+  return [degrees, minutes, seconds];
+};
+ // 도/분/초를 위도/경도로 변환하는 함수
+ const convertToDecimal = () => {
+  const lat = toDecimal(latDegrees, latMinutes, latSeconds, latDirection === 'S');
+  const lng = toDecimal(lngDegrees, lngMinutes, lngSeconds, lngDirection === 'W');
+
+  setLatitude(lat.toFixed(6));
+  setLongitude(lng.toFixed(6));
+};
+
+const toDecimal = (degrees, minutes, seconds, isNegative) => {
+  const decimal = Math.abs(degrees) + minutes / 60 + seconds / 3600;
+  return isNegative ? -decimal : decimal;
+};
   useEffect(() => {
     if (show) {
       setActiveTab('model'); // 모달이 열릴 때 항상 "모델 지정" 탭을 기본으로 설정
@@ -39,45 +75,9 @@ const Modal = ({ show, onClose, marker, onRegister, onDelete, markersLength, bus
 
   if (!show) return null;
 
-  // 위도/경도를 도/분/초로 변환하는 함수
-  const convertToDMS = (lat, lng) => {
-    const latDir = lat >= 0 ? 'N' : 'S';
-    const lngDir = lng >= 0 ? 'E' : 'W';
-
-    const [latD, latM, latS] = toDMS(Math.abs(lat));
-    const [lngD, lngM, lngS] = toDMS(Math.abs(lng));
-
-    setLatDegrees(latD);
-    setLatMinutes(latM);
-    setLatSeconds(latS);
-    setLatDirection(latDir);
-
-    setLngDegrees(lngD);
-    setLngMinutes(lngM);
-    setLngSeconds(lngS);
-    setLngDirection(lngDir);
-  };
-
-  const toDMS = (decimal) => {
-    const degrees = Math.floor(decimal);
-    const minutes = Math.floor((decimal - degrees) * 60);
-    const seconds = Math.round((decimal - degrees - minutes / 60) * 3600);
-    return [degrees, minutes, seconds];
-  };
-
-  // 도/분/초를 위도/경도로 변환하는 함수
-  const convertToDecimal = () => {
-    const lat = toDecimal(latDegrees, latMinutes, latSeconds, latDirection === 'S');
-    const lng = toDecimal(lngDegrees, lngMinutes, lngSeconds, lngDirection === 'W');
-
-    setLatitude(lat.toFixed(6));
-    setLongitude(lng.toFixed(6));
-  };
-
-  const toDecimal = (degrees, minutes, seconds, isNegative) => {
-    const decimal = Math.abs(degrees) + minutes / 60 + seconds / 3600;
-    return isNegative ? -decimal : decimal;
-  };
+ 
+ 
+ 
 
   const handleRegisterClick = async () => {
     const markerData = {

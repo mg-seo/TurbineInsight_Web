@@ -59,18 +59,19 @@
   text-align: center;
 }
 
+/* 기본 사이드바 스타일 */
 .sidebar-wrapper {
   z-index: 3;
   width: 125px;
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   height: 100%;
   background-color: white;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  transition: transform 0.3s ease; /* 애니메이션 추가 */
 }
-
 .detail-section {
   width: 250px;
   background: #f9f9f9;
@@ -132,4 +133,64 @@
 
 .section-title {
   text-align: center;
+}
+
+@media (max-width: 768px) {
+   /* 모바일에서 .main-container 페이지에 스크롤 방지 */
+   .main-container {
+    overflow: hidden;
+    height: 100vh;
+  }
+  .sidebar-wrapper {
+    width: 10%; /* 아이콘 크기에 맞춘 사이드바 너비 */
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .sidebar-wrapper.open {
+    transform: translateX(0); /* 열릴 때 화면에 나타남 */
+  }
+
+  .detail-section {
+    left: 10%; /* 사이드바와의 간격 맞춤 */
+    width: 90%; /* 화면 너비에 맞게 조정 */
+    height: 100vh; /* 화면 높이에 맞춤 */
+    overflow-y: auto; /* .detail-section 내에만 스크롤 */
+  }
+
+  .title-wrapper {
+    top: 2%;
+    padding: 2% 5%; /* 모바일에서 패딩을 퍼센트로 조정 */
+    min-width: 50%; /* 너비를 퍼센트로 설정 */
+  }
+
+  .title {
+    font-size: 1rem; /* 모바일 화면에 맞는 폰트 크기 */
+  }
+
+  .edit-button,
+  .check-button {
+    font-size: 1rem; /* 모바일에 맞는 아이콘 크기 */
+  }
+
+  .marker-item {
+    padding: 2%; /* 모바일 화면에 맞게 패딩 조정 */
+  }
+
+  .marker-icon {
+    width: 1rem;
+    height: 1rem; /* 모바일에 맞는 아이콘 크기 */
+  }
+
+  .marker-coordinates {
+    font-size: 0.7rem; /* 모바일에 맞는 폰트 크기 */
+  }
+
+  .close-button {
+    font-size: 0.875rem; /* 모바일에 맞는 닫기 버튼 크기 */
+  }
+
+  .section-title {
+    font-size: 1rem; /* 모바일에서 제목 크기 */
+  }
 }

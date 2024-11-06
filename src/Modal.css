@@ -106,6 +106,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: small;
 }
 
 .cancel-button {
@@ -120,4 +121,12 @@
 .register-button {
   background-color: #4CAF50;
   color: white;
+}
+/* 모바일 버전 모달 크기 조정 */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 80%; /* 양옆에 약간의 여백을 남기고 중앙에 배치 */
+    max-width: 90%; /* 최대 너비 설정 */
+    padding: 15px; /* 패딩을 줄여 모바일 화면에서 보기 좋게 */
+  }
 }

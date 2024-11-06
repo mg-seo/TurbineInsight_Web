@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LoadScriptNext } from '@react-google-maps/api';
-import { FaEdit, FaCheck } from 'react-icons/fa';
+import { FaEdit, FaCheck, FaBars } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import Modal from './Modal';
 import api from './api';
@@ -25,6 +25,17 @@ const MapPage = ({ business, userId }) => {
   const [otherMarkers, setOtherMarkers] = useState({}); // 다른 사업 마커를 저장할 상태
   const [canPlaceMarker, setCanPlaceMarker] = useState(true); // 마커 찍기 가능 여부 상태
   const [regulatedAreas, setRegulatedAreas] = useState([]); // 규제지역 목록 상태
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768); // 초기 화면 크기 확인
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isDetailSectionOpen = selectedSection !== ''; // 상세 섹션이 열려 있는지 확인하는 변수
+
+// 화면 크기 변화에 따라 모바일 여부 업데이트
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth <= 768);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
   const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFA500', '#800080', '#FFFF00', '#00FFFF', '#FFC0CB']; // 색상 배열
 
   useEffect(() => {
@@ -458,28 +469,36 @@ const handleAreaToggle = async (areaId, checked) => {
         <div ref={mapRef} className="map-container" />
       </LoadScriptNext>
 
-      <div className="title-wrapper">
-      {isEditing ? (
-          <>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="title-input" />
-            <button className="check-button" onClick={updateTitle}>
-              <FaCheck />
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="title">{title}</div>
-            <button className="edit-button" onClick={() => setIsEditing(true)}>
-              <FaEdit />
-            </button>
-          </>
-        )}
-      </div>
+{/* 데스크톱에서는 항상 title-wrapper를 표시하고, 모바일에서는 detail-section이 닫혀 있을 때만 표시 */}
+{(!isMobile || !isDetailSectionOpen) && (
+  <div className="title-wrapper">
+    {isEditing ? (
+      <>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="title-input"
+        />
+        <button className="check-button" onClick={updateTitle}>
+          <FaCheck />
+        </button>
+      </>
+    ) : (
+      <>
+        <div className="title">{title}</div>
+        <button className="edit-button" onClick={() => setIsEditing(true)}>
+          <FaEdit />
+        </button>
+      </>
+    )}
+  </div>
+)}
 
-      <div className="sidebar-wrapper">
-        <Sidebar setSelectedSection={setSelectedSection} />
+      {/* 사이드바 */}
+      <div className={`sidebar-wrapper ${isMobile && isSidebarOpen ? 'open' : ''}`}>
+        <Sidebar setSelectedSection={(section) => setSelectedSection(section)} />
       </div>
-
       <div
         className="detail-section"
         style={{ transform: selectedSection !== '' ? 'translateX(0)' : 'translateX(-100%)' }}

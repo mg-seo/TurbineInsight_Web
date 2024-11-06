@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaListAlt, FaExclamationTriangle } from 'react-icons/fa'; // React Icons에서 필요한 아이콘 임포트
+const isMobile = window.innerWidth <= 768; // 화면 너비가 768px 이하일 때 모바일로 간주
 
 const Sidebar = ({ setSelectedSection }) => {
   const handleSectionClick = (index) => {
@@ -8,27 +9,30 @@ const Sidebar = ({ setSelectedSection }) => {
 
   return (
     <div style={sidebarStyle}>
-      <h2 style={{ fontSize: '1rem' }}>메뉴</h2>
+      <h2 style={{ fontSize: '1rem' }}>
+      {isMobile ? '' : '메뉴'}
+
+        </h2>
 
       {/* 섹션 버튼 */}
       <div style={{ borderTop: '1px solid #ccc' }}>
         <button onClick={() => handleSectionClick(0)} style={sectionButtonStyle}>
           <FaMapMarkerAlt style={iconStyle} />
-          마커 목록
+          {isMobile ? '' : '마커 목록'}
         </button>
       </div>
 
       <div>
         <button onClick={() => handleSectionClick(1)} style={sectionButtonStyle}>
           <FaListAlt style={iconStyle} />
-          사업 목록
+          {isMobile ? '' : '사업 목록'}
         </button>
       </div>
 
       <div>
         <button onClick={() => handleSectionClick(2)} style={sectionButtonStyle}>
           <FaExclamationTriangle style={iconStyle} />
-          규제 지역
+          {isMobile ? '' : '규제 지역'}
         </button>
       </div>
     </div>
@@ -38,7 +42,7 @@ const Sidebar = ({ setSelectedSection }) => {
 // 사이드바 스타일
 const sidebarStyle = {
   textAlign: 'center',
-  width: '125px',
+  width: isMobile ? '50px' : '125px',
   background: 'white',
   padding: '0px',
   height: '100vh',
