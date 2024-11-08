@@ -1,281 +1,125 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a id="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
-
-
-<!-- PROJECT LOGO -->
+<!-- 프로젝트 로고 -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/github_username/repo_name">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Best-README-Template</h3>
+<h3 align="center">Turbine Insight API</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    Spring Boot로 구축된 백엔드 API로, 사용자와 비즈니스(풍력단지) 정보를 관리합니다.<br/>
+    Turbine Insight 앱, 웹과 연동되어 사용자는 어느 환경에서나 접근할 수 있습니다.<br/>
+    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
   </p>
 </div>
 
-
-
-<!-- TABLE OF CONTENTS -->
+<!-- 목차 -->
 <details>
-  <summary>Table of Contents</summary>
+  <summary>목차</summary>
   <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#프로젝트-소개">프로젝트 소개</a></li>
+    <li><a href="#시작하기">시작하기</a></li>
+    <li><a href="#협업자">협업자</a></li>
   </ol>
 </details>
 
+<!-- 프로젝트 소개 -->
+## 프로젝트 소개
 
+풍력단지 개발 예정지에 실제 건설 전 AR로 미리 풍력발전기의 설치된 모습을 확인할 수 있습니다.
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+<h4>주요 기능</h4>
+<ul>
+  <li>사용자 인증</li>
+  <li>사용자별 비즈니스 목록 관리</li>
+  <li>사용자별 풍력발전 설치 제한구역 관리</li>
+  <li>비즈니스별 마커, 메모 관리</li>
+  <li>비즈니스별 이미지 관리</li>
+  <li>AWS S3에 이미지, 제한구역 저장 및 삭제</li>
+</ul>
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+웹의 프론트엔드는 React로 개발되어 있으며, 별도의 레포지토리에서 관리됩니다.<br/>
+앱 또한 Android Studio와 Unity로 개발되어 별도의 레포지토리에서 관리됩니다.
 
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
+### 사용 기술
 
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
+* [![Spring Boot][SpringBoot]][SpringBoot-url]
+* [![Hibernate][Hibernate]][Hibernate-url]
+* [![Lombok][Lombok]][Lombok-url]
+* [![PostgreSQL][PostgreSQL]][PostgreSQL-url]
+* [![AWS S3][AWS]][AWS-url]
+* [![AWS EC2][EC2]][EC2-url]
 
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
+<!-- 시작하기 -->
+## 시작하기
 
-Use the `BLANK_README.md` to get started.
+### 선행 조건
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+이 프로젝트를 실행하려면 다음 소프트웨어가 설치되어 있어야 합니다:
 
+- **Java 11**: 애플리케이션의 주 프로그래밍 언어입니다. Java 11이 설치되어 있는지 확인하세요.
+- **Gradle**: 프로젝트 빌드 도구로, 이 프로젝트에서는 Gradle을 사용하여 의존성 관리 및 빌드를 수행합니다.
+- **PostgreSQL**: 데이터베이스 서버로, PostgreSQL이 설치되어 있고 데이터베이스 및 사용자 계정이 설정되어 있어야 합니다.
+- **AWS S3 & EC2 계정**: AWS S3를 사용하여 파일을 저장하고 EC2에서 애플리케이션을 배포할 수 있습니다. AWS 계정과 필요한 권한이 있는지 확인하세요.
 
+### 설치
 
-### Built With
+```sh
+# 1. 레포지토리 클론
+git clone https://github.com/github_username/repo_name.git
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+# 2. 프로젝트 디렉토리로 이동
+cd repo_name
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+# 3. 데이터베이스 설정
+# application.properties 파일에서 데이터베이스 설정을 구성합니다.
+# 아래 코드를 application.properties에 추가하세요.
+spring.datasource.url=jdbc:postgresql://your_ip_address/your_db_name
+spring.datasource.username=your_username
+spring.datasource.password=your_password
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+# 4. AWS S3 설정
+# application.properties 파일에 S3 접근 키를 추가합니다.
+cloud.aws.credentials.access-key=your_public_key
+cloud.aws.credentials.secret-key=your_private_key
+cloud.aws.region.static=your_region
 
+# ImageServiceImpl.java 및 RegulatedServiceImpl.java 파일에 S3 버킷 이름을 추가합니다.
+private final String bucketName = "your-bucket-name";
 
+# 5. 빌드 및 실행
+# 터미널에서 빌드 후 EC2에 업로드, 접속하여 실행합니다.
 
-<!-- GETTING STARTED -->
-## Getting Started
+# 빌드
+./gradlew bootJar
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+# 업로드
+scp -i "YourEC2KeyPair.pem" "YourBuildFile.jar" ubuntu@EC2_public_ip_address:/home/ubuntu/
 
-### Prerequisites
+# EC2 접속 및 자바 설치
+ssh -i "YourEC2KeyPair.pem" ubuntu@EC2_public_ip_address
+sudo apt update
+sudo apt install openjdk-11-jdk -y
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/github_username/repo_name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
-   ```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Top contributors:
-
-<a href="https://github.com/othneildrew/Best-README-Template/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=othneildrew/Best-README-Template" alt="contrib.rocks image" />
-</a>
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
-## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
-## Contact
-
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
+# 업로드 확인 및 실행
+ls /home/ubuntu/
+nohup java -jar /home/ubuntu/YourBuildFile.jar > app.log 2>&1 &
+ps -ef | grep java
+```
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
-[Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
-[Bootstrap-url]: https://getbootstrap.com
-[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com 
+<!-- MARKDOWN LINKS & IMAGES -->
+[SpringBoot]: https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring&logoColor=white
+[SpringBoot-url]: https://spring.io/projects/spring-boot
+[Hibernate]: https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white
+[Hibernate-url]: https://hibernate.org/
+[Lombok]: https://img.shields.io/badge/Lombok-9C3E00?style=for-the-badge&logo=lombok&logoColor=white
+[Lombok-url]: https://projectlombok.org/
+[PostgreSQL]: https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgreSQL-url]: https://www.postgresql.org/
+[AWS]: https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazonaws&logoColor=white
+[AWS-url]: https://aws.amazon.com/s3/
+[EC2]: https://img.shields.io/badge/Amazon_EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white
+[EC2-url]: https://aws.amazon.com/ec2/
