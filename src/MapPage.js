@@ -43,11 +43,12 @@ useEffect(() => {
     if (business && business.name) {
       setTitle(business.name); // business에서 제목 설정
     }
+  
     const initMap = () => {
       if (mapRef.current && !mapInstance.current && window.google) {
         mapInstance.current = new window.google.maps.Map(mapRef.current, {
           zoom: 12,
-          center: { lat: 37.5665, lng: 126.9780 },
+          center: { lat: 37.5665, lng: 126.9780 }, // 기본 중심 위치
           minZoom: 5,
           maxZoom: 15,
           mapTypeControl: false,
@@ -58,29 +59,45 @@ useEffect(() => {
           mapId: 'DEMO_MAP_ID',
         });
         setIsMapLoaded(true); // 맵이 완전히 로드됨을 설정
-
+  
         mapInstance.current.addListener('click', (event) => {
-          if(canPlaceMarker) {
+          if (canPlaceMarker) {
             handleMapClick(event.latLng);
-
           }
-
         });
       }
     };
-
-    if (isMapLoaded) initMap();
-  }, [isMapLoaded, canPlaceMarker, business]);
+  
+    // 지도 초기화는 항상 실행되도록
+    if (!mapInstance.current) {
+      initMap();
+    }
+  
+    // 마커 데이터를 가져온 후 지도의 중심을 설정
+    if (isMapLoaded && mapInstance.current && markers.length > 0) {
+      const markerWithLowestId = markers.reduce((prev, current) =>
+        prev.markerId < current.markerId ? prev : current
+      );
+  
+      // 가장 낮은 ID의 마커를 중심으로 지도 설정
+      if (markerWithLowestId) {
+        mapInstance.current.setCenter({
+          lat: markerWithLowestId.latitude,
+          lng: markerWithLowestId.longitude,
+        });
+      }
+    }
+  }, [isMapLoaded, canPlaceMarker, business, markers]);
+  
+  
  // 제목 업데이트 함수
  const updateTitle = async () => {
   try {
     const response = await api.put(`/api/businesses/updateName/${business.id}`, null, {
       params: { businessName: title }, // 제목을 파라미터로 전달
     });
-    console.log('Updated business title:', response.data);
     setIsEditing(false); // 편집 모드를 종료합니다.
   } catch (error) {
-    console.error('Failed to update title:', error);
   }
 };
 const fetchMarkers = async () => {
@@ -90,8 +107,6 @@ const fetchMarkers = async () => {
     const response = await api.get(`/api/businesses/map/get/marker/${business.id}`);
     
     if (Array.isArray(response.data)) {
-      console.log("Fetched markers:", response.data);
-
       // 기존 마커 제거
       markers.forEach(marker => {
         if (marker.markerInstance) {
@@ -120,7 +135,6 @@ const fetchMarkers = async () => {
 
       setMarkers(newMarkers); // 상태에 새 마커 설정
     } else {
-      console.warn("No markers found for this business ID:", business.id);
       setMarkers([]); // 빈 배열로 설정하여 UI에서 마커가 없음을 반영
     }
   } catch (error) {
@@ -182,13 +196,10 @@ const handleMapClick = (location) => {
   useEffect(() => {
     const fetchBusinessList = async () => {
       try {
-        console.log(`Fetching businesses for userId: ${userId}`);
         const response = await api.get(`/api/businesses/list/${userId}`);
-        console.log('API Response:', response.data); // 응답 데이터 확인
   
         // 현재 선택된 사업 ID를 제외한 나머지 사업만 필터링
         const filteredList = response.data.filter(item => item.businessId !== business.id);
-        console.log('Filtered Business List:', filteredList);
         setBusinessList(filteredList);
       } catch (error) {
         console.error('Error fetching business list:', error);
@@ -244,7 +255,6 @@ const handleRegisterMarker = async (updatedMarker) => {
         return prevMarkers.filter((marker) => {
           if (marker.markerId === markerId) {
             if (marker.markerInstance) {
-              console.log("Removing marker from map:", marker.markerId);
               marker.markerInstance.setMap(null); // 지도에서 마커 제거
             }
             return false; // 상태에서 제거
@@ -372,7 +382,6 @@ const fetchOtherBusinessMarkers = async (otherBusinessId, index) => {
 
 
 const handleEditMarker = (marker) => {
-  console.log("Received marker in handleEditMarker:", marker); // handleEditMarker로 전달된 marker
   setPendingMarker(marker); // marker를 pendingMarker에 설정
   setIsModalOpen(true); // 모달 열기
 };
@@ -432,8 +441,6 @@ const handleAreaToggle = async (areaId, checked) => {
           fillOpacity: 0.4,
         });
       });
-      // 기존 클릭 이벤트 리스너를 제거
-      window.google.maps.event.clearListeners(mapInstance.current.data, "click");
       
       mapInstance.current.data.addListener("click", (event) => {
         const clickedAreaId = event.feature.getProperty("areaId");
