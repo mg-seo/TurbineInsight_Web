@@ -3,7 +3,7 @@
 - **개발 기간** : `2024/10/21 ~ 11/15` (4주)
 
 - ## 프로젝트 개요
-GIS 데이터를 활용해 규제구역을 시각화하고, 특정 구역을 지도 상에서 명확히 표시하여 효율적인 관리가 가능하도록 개발되었습니다. 풍력발전기 모델을 지정하여 마커를 통해 사업지의 풍력발전기 위치를 미리 지정하고 볼 수 있는 기능을 제공합니다.
+GIS 데이터를 활용해 규제구역을 시각화하고, 특정 구역을 지도 상에서 명확히 표시하여 효율적인 관리가 가능하도록 개발되었습니다. 기존 앱과 연동이 가능하고 풍력발전기 모델을 지정하여 마커를 통해 사업지의 풍력발전기 위치를 미리 지정하고 볼 수 있는 기능을 제공합니다.
 
 
 ## 🪅 팀원
@@ -14,15 +14,24 @@ GIS 데이터를 활용해 규제구역을 시각화하고, 특정 구역을 지
 
 ### 팀원의 주요 역할
 
-- **서무경**: 로그인, 사업의 CRUD 구현 및 사업목록 화면 UI 설계
-- **이진석**: 규제지역 API 활용, 마커 배치 및 지도 화면 UI 설계
+- **서무경**: ERD 설계, 로그인, 사업의 CRUD 구현 및 사업목록 화면 UI 설계
+- **이진석**:  앱 연동, 규제지역 API 활용, 지도 UI 설계 및 마커 배치 기능 구현
 
-- ## 개발 환경
-- **운영체제**: 
-- **개발 도구**: 
-- **언어**: 
-- **DBMS**:
-  
+## 개발 환경
+- **운영체제**: ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+- **개발 도구**: ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white) ![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+- **언어**: ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white) ![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)
+- **DBMS**: ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+
+## 백엔드 프레임워크
+- ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring&logoColor=white) 
+- ![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white)
+- ![Lombok](https://img.shields.io/badge/Lombok-9C3E00?style=for-the-badge&logo=lombok&logoColor=white)
+
+## 클라우드 서비스
+- ![AWS S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazonaws&logoColor=white) 
+- ![AWS EC2](https://img.shields.io/badge/Amazon_EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+
 - ## 주요 기능
 1. **GIS 기반 규제구역 시각화**
 2. **효율적인 마커 관리 시스템**
