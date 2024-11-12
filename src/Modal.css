@@ -1,0 +1,132 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Modal Container */
+.modal-container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 350px;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* Tab Header */
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+/* Tab Button */
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 5px;
+}
+
+/* Active Tab Button */
+.active-tab-button {
+  background-color: #ddd;
+  font-weight: bold;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Form Group */
+.form-group {
+  width: 100%;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* DMS Group for Degrees, Minutes, Seconds, Direction */
+.dms-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dms-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* DMS Input Field */
+.input-field-small {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Unified Input Field */
+.input-field {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Button Wrapper */
+.button-wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Buttons */
+.cancel-button, .delete-button, .register-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: small;
+}
+
+.cancel-button {
+  background-color: #ccc;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.register-button {
+  background-color: #4CAF50;
+  color: white;
+}
+/* 모바일 버전 모달 크기 조정 */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 80%; /* 양옆에 약간의 여백을 남기고 중앙에 배치 */
+    max-width: 90%; /* 최대 너비 설정 */
+    padding: 15px; /* 패딩을 줄여 모바일 화면에서 보기 좋게 */
+  }
+}
